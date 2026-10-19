@@ -14,16 +14,16 @@ def _enable(display, enabled):
     display['Value'] = bool(enabled)
 
 
-def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
+def write_rviz_configs(config, template_dir, output_dir):
     """Render views without adding or guessing any sensor mounting transform."""
     template_dir, output_dir = Path(template_dir), Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     robot = yaml.safe_load((template_dir / 'robot_sensors.rviz').read_text())
     lidar = config['lidar']
     camera = config['camera']
-    camera_enabled = camera['enabled'] and not urdf_only
-    lidar_enabled = lidar['enabled'] and not urdf_only
-    robot_enabled = config['go2']['enabled'] or urdf_only
+    camera_enabled = camera['enabled']
+    lidar_enabled = lidar['enabled']
+    robot_enabled = config['go2']['enabled']
     mounts = active_mounts(config)
     fixed_frame = 'base_link'
     if not robot_enabled:
@@ -44,7 +44,7 @@ def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
         if name == 'Go2 Robot':
             _enable(display, robot_enabled)
         elif name in ('Go2 Camera', 'Go2 LiDAR'):
-            if not config['go2']['enabled'] or urdf_only:
+            if not robot_enabled:
                 continue
             _enable(display, True)
         elif name in ('D435i RGB', 'D435i Depth'):
@@ -62,12 +62,9 @@ def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
             _enable(display, camera_enabled and camera['pointcloud'] and (
                 (robot_enabled and 'd435i' in mounts)
                 or fixed_frame == camera['name'] + '_link'))
-        if urdf_only and name in ('MID360 Cloud', 'D435i Cloud'):
-            continue
         displays.append(display)
     robot['Visualization Manager']['Displays'] = displays
-    filename = 'go2_urdf_preview.rviz' if urdf_only else 'robot_sensors.rviz'
-    paths = {'robot': output_dir / filename}
+    paths = {'robot': output_dir / 'robot_sensors.rviz'}
     paths['robot'].write_text(yaml.safe_dump(robot, sort_keys=False))
     if cloud_available and not lidar_in_robot:
         preview = yaml.safe_load((template_dir / 'lidar.rviz').read_text())
@@ -77,7 +74,7 @@ def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
     return paths
 
 
-def rviz_actions(config, template_dir, urdf_only=False):
+def rviz_actions(config, template_dir):
     """Create managed RViz nodes, with a separate uncalibrated LiDAR view."""
     from launch.actions import LogInfo, OpaqueFunction, RegisterEventHandler
     from launch.event_handlers import OnShutdown
@@ -85,7 +82,7 @@ def rviz_actions(config, template_dir, urdf_only=False):
 
     folder = tempfile.mkdtemp(prefix='wego-rviz-')
     try:
-        paths = write_rviz_configs(config, template_dir, folder, urdf_only)
+        paths = write_rviz_configs(config, template_dir, folder)
     except Exception:
         shutil.rmtree(folder, ignore_errors=True)
         raise
@@ -94,7 +91,6 @@ def rviz_actions(config, template_dir, urdf_only=False):
         shutil.rmtree(folder, ignore_errors=True)
         return []
 
-    prefix = 'wego_urdf' if urdf_only else 'wego'
     actions = [RegisterEventHandler(OnShutdown(on_shutdown=[
         OpaqueFunction(function=cleanup),
     ]))]
@@ -115,7 +111,7 @@ def rviz_actions(config, template_dir, urdf_only=False):
             'MID360 is shown in a separate sensor-frame RViz window until '
             'measured mounting TF is enabled. RGB/depth images are in the robot window.'
         )))
-    if config['lidar']['enabled'] and not urdf_only and int(config['lidar']['xfer_format']) != 0:
+    if config['lidar']['enabled'] and int(config['lidar']['xfer_format']) != 0:
         actions.append(LogInfo(msg=(
             'RViz PointCloud2 needs lidar.xfer_format: 0. '
             'Livox CustomMsg is not a PointCloud2 display input.'
@@ -123,7 +119,7 @@ def rviz_actions(config, template_dir, urdf_only=False):
     for key, path in paths.items():
         actions.append(Node(
             package='rviz2', executable='rviz2',
-            name=prefix + ('_rviz' if key == 'robot' else '_lidar_rviz'),
+            name='wego_rviz' if key == 'robot' else 'wego_lidar_rviz',
             arguments=['-d', str(path)], output='screen',
         ))
     return actions

@@ -33,10 +33,10 @@ def config():
 
 @pytest.fixture
 def render(visualization, config, tmp_path):
-    def generate(*, urdf_only=False):
+    def generate():
         original = copy.deepcopy(config)
         paths = visualization.write_rviz_configs(
-            config, ROOT / 'rviz', tmp_path, urdf_only=urdf_only
+            config, ROOT / 'rviz', tmp_path
         )
         assert config == original, 'Rendering must leave the input config unchanged.'
         return {
@@ -120,25 +120,6 @@ def test_lidar_reference_does_not_connect_to_an_unmounted_camera_without_go2(con
     assert set(views) == {'robot', 'lidar'}
     assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'camera_link'
     assert_enabled(displays(views['robot'])['MID360 Cloud'], False)
-
-
-def test_urdf_only_contains_robot_tf_and_grid_even_when_sensors_are_enabled(config, render):
-    config['go2']['enabled'] = False
-    config['camera']['pointcloud'] = True
-
-    views = render(urdf_only=True)
-
-    assert set(views) == {'robot'}
-    robot = displays(views['robot'])
-    assert set(robot) == {'Go2 Robot', 'TF', 'Grid'}
-    assert {display['Class'] for display in robot.values()} == {
-        'rviz_default_plugins/RobotModel',
-        'rviz_default_plugins/TF',
-        'rviz_default_plugins/Grid',
-    }
-    for display in robot.values():
-        assert_enabled(display, True)
-    assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'base_link'
 
 
 def test_custom_livox_messages_do_not_enable_pointcloud2_or_lidar_preview(config, render):
