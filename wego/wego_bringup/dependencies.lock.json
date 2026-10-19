@@ -1,0 +1,34 @@
+{
+  "go2": {
+    "path": "src/drivers/go2",
+    "url": "https://github.com/Wego-Robot-Engeering-Team/go2.git",
+    "commit": "a4a4c2e9a7d6dff8f897807d68744e196e559578"
+  },
+  "unitree_ros2": {
+    "path": "src/drivers/go2/unitree_ros2",
+    "url": "https://github.com/unitreerobotics/unitree_ros2.git",
+    "commit": "668d1ec5a05d1c38d3306bdca7d59f2ba3581a88"
+  },
+  "unitree_sdk2": {
+    "path": "src/drivers/go2/unitree_sdk2",
+    "url": "https://github.com/unitreerobotics/unitree_sdk2.git",
+    "commit": "9754cd153af3da471b0fe5f3aa535e426fb11db3"
+  },
+  "livox_ros_driver2": {
+    "path": "src/drivers/livox_ros_driver2",
+    "url": "https://github.com/Livox-SDK/livox_ros_driver2.git",
+    "commit": "21445540f0d100dc86a7e6df312dd70bbdb4afdf"
+  },
+  "Livox-SDK2": {
+    "path": "src/vendor/Livox-SDK2",
+    "url": "https://github.com/Livox-SDK/Livox-SDK2.git",
+    "commit": "c0796f04c143143899c87a773d9f6b7136453c0b"
+  },
+  "librealsense": {
+    "url": "https://github.com/realsenseai/librealsense.git",
+    "tag": "v2.58.4",
+    "commit": "34d6c778e1134d8505adcd56bb57acbe7598a459",
+    "backend": "RSUSB",
+    "path": "src/vendor/librealsense"
+  }
+}

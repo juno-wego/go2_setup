@@ -1,0 +1,13 @@
+[submodule "drivers/go2"]
+	path = drivers/go2
+	url = https://github.com/Wego-Robot-Engeering-Team/go2.git
+	ignore = untracked
+[submodule "drivers/livox_ros_driver2"]
+	path = drivers/livox_ros_driver2
+	url = https://github.com/Livox-SDK/livox_ros_driver2.git
+[submodule "vendor/Livox-SDK2"]
+	path = vendor/Livox-SDK2
+	url = https://github.com/Livox-SDK/Livox-SDK2.git
+[submodule "vendor/librealsense"]
+	path = vendor/librealsense
+	url = https://github.com/realsenseai/librealsense.git

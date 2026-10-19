@@ -1,0 +1,24 @@
+go2_state_bridge:
+  ros__parameters:
+    sport_state_topic: /lf/sportmodestate
+    low_state_topic: /lowstate
+    odom_topic: /go2/odom
+    imu_topic: /go2/imu
+    joint_state_topic: /joint_states
+    foot_force_topic: /go2/foot_force
+    battery_topic: /go2/battery_state
+    sport_state_output_topic: /go2/sport_state
+    odom_frame: odom
+    base_frame: base_link
+    # Match the Wego humble URDF's actual IMU link.
+    imu_frame: imu
+    publish_tf: true
+    rebase_odom_on_start: false
+    planarize_odom: true
+go2_cmd_vel_bridge:
+  ros__parameters:
+    auto_balance_stand_on_start: false
+    auto_classic_mode_on_start: false
+    auto_running_mode_on_start: false
+    cmd_timeout: 0.5
+    stop_on_timeout: true

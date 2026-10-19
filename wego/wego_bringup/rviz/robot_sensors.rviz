@@ -1,0 +1,162 @@
+Panels:
+- Class: rviz_common/Displays
+  Name: Displays
+Visualization Manager:
+  Class: ''
+  Displays:
+  - Class: rviz_default_plugins/Grid
+    Name: Grid
+    Enabled: true
+    Value: true
+    Alpha: 0.45
+    Cell Size: 0.5
+    Color: 160; 160; 164
+    Plane: XY
+    Plane Cell Count: 20
+    Reference Frame: <Fixed Frame>
+  - Class: rviz_default_plugins/RobotModel
+    Name: Go2 Robot
+    Enabled: true
+    Value: true
+    Alpha: 1
+    Collision Enabled: false
+    Visual Enabled: true
+    Description Source: Topic
+    Description File: ''
+    Description Topic:
+      Value: /robot_description
+      Depth: 5
+      Durability Policy: Transient Local
+      History Policy: Keep Last
+      Reliability Policy: Reliable
+    TF Prefix: ''
+    Update Interval: 0
+  - Class: rviz_default_plugins/TF
+    Name: TF
+    Enabled: true
+    Value: true
+    Frame Timeout: 15
+    Frames:
+      All Enabled: true
+    Marker Scale: 0.15
+    Show Arrows: false
+    Show Axes: true
+    Show Names: false
+    Update Interval: 0
+  - Class: rviz_default_plugins/Image
+    Name: D435i RGB
+    Enabled: true
+    Value: true
+    Normalize Range: true
+    Min Value: 0
+    Max Value: 1
+    Median window: 5
+    Topic:
+      Value: /camera/camera/color/image_raw
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+  - Class: rviz_default_plugins/Image
+    Name: D435i Depth
+    Enabled: true
+    Value: true
+    Normalize Range: true
+    Min Value: 0
+    Max Value: 1
+    Median window: 5
+    Topic:
+      Value: /camera/camera/depth/image_rect_raw
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+  - Class: rviz_default_plugins/PointCloud2
+    Name: MID360 Cloud
+    Enabled: false
+    Value: false
+    Alpha: 1
+    Position Transformer: XYZ
+    Color Transformer: Intensity
+    Channel Name: intensity
+    Autocompute Intensity Bounds: true
+    Use rainbow: true
+    Decay Time: 0
+    Style: Points
+    Size (Pixels): 2
+    Size (m): 0.02
+    Selectable: true
+    Use Fixed Frame: true
+    Topic:
+      Value: /livox/lidar
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+      Filter size: 10
+  - Class: rviz_default_plugins/PointCloud2
+    Name: D435i Cloud
+    Enabled: false
+    Value: false
+    Alpha: 1
+    Position Transformer: XYZ
+    Color Transformer: RGB8
+    Decay Time: 0
+    Style: Points
+    Size (Pixels): 2
+    Size (m): 0.01
+    Selectable: true
+    Use Fixed Frame: true
+    Topic:
+      Value: /camera/camera/depth/color/points
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+      Filter size: 10
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: base_link
+    Frame Rate: 20
+  Name: root
+  Tools:
+  - Class: rviz_default_plugins/Interact
+    Hide Inactive Objects: true
+  - Class: rviz_default_plugins/MoveCamera
+  - Class: rviz_default_plugins/Select
+  - Class: rviz_default_plugins/FocusCamera
+  - Class: rviz_default_plugins/Measure
+    Line color: 128; 128; 0
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Distance: 2.4
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Near Clip Distance: 0.01
+      Pitch: 0.45
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+      Yaw: 0.8
+    Saved: null
+Window Geometry:
+  Height: 1000
+  Width: 1150
+  X: 10
+  Y: 30
+  Hide Left Dock: false
+  Hide Right Dock: false
+  Displays:
+    collapsed: false
+  Views:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
