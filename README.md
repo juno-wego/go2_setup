@@ -4,7 +4,6 @@
 - [로그인](#로그인)
 - [실행](#실행)
 - [연결](#연결)
-- [수신 확인](#수신-확인)
 - [장치 제원](#장치-제원)
 - [토픽 인터페이스](#토픽-인터페이스)
 - [좌표계](#좌표계)
@@ -25,7 +24,7 @@ source ~/wego_ws/install/setup.bash
 ros2 launch wego_bringup bringup.launch.py
 ```
 
-RViz에서 Go2 관절 상태, MID-360 포인트클라우드, D435i RGB·깊이 영상을 확인한다.
+RViz에서 Go2 관절·내장 LiDAR·전면 영상, MID-360 포인트클라우드, D435i RGB·깊이 영상을 확인한다.
 주행·자세 명령은 제어 토픽으로 전달한다. 종료는 실행 터미널에서 `Ctrl+C`.
 
 ## 연결
@@ -36,18 +35,7 @@ RViz에서 Go2 관절 상태, MID-360 포인트클라우드, D435i RGB·깊이 �
 | MID-360 | LAN (`mid360`) | `192.168.1.5/24` | `192.168.1.177` |
 | D435i | USB | — | — |
 
-영상 출력: RGB 640 × 480 @ 15 fps, 깊이 480 × 270 @ 15 fps.
-
-## 수신 확인
-
-별도 터미널에서 실행한다.
-
-```bash
-source ~/wego_ws/install/setup.bash
-ros2 run wego_bringup check_hardware --duration 10
-```
-
-장치별 수신 수(`messages`)를 확인한다.
+D435i 영상: RGB 640 × 480 @ 15 fps, 깊이 480 × 270 @ 15 fps.
 
 ## 장치 제원
 
@@ -93,6 +81,8 @@ ros2 run wego_bringup check_hardware --duration 10
 
 ## 토픽 인터페이스
 
+[Go2 전체 토픽](docs/go2_topics.md)
+
 ### Go2 상태
 
 | 토픽 | 메시지 타입 | 내용 |
@@ -103,6 +93,19 @@ ros2 run wego_bringup check_hardware --duration 10
 | `/go2/foot_force` | `std_msgs/msg/Int16MultiArray` | 발 힘 원시값 |
 | `/go2/battery_state` | `go2_interface/msg/Go2BatteryState` | 전압·전류·잔량·충전 상태 |
 | `/go2/sport_state` | `unitree_go/msg/SportModeState` | 로봇 동작 상태 |
+| `/go2/low_state` | `unitree_go/msg/LowState` | 관절·모터·BMS 전체 상태 |
+| `/go2/wireless_controller` | `unitree_go/msg/WirelessController` | 조종기 입력 |
+| `/go2/uwb_state` | `unitree_go/msg/UwbState` | UWB 상태 |
+
+### Go2 내장 센서
+
+| 토픽 | 메시지 타입 | 내용 |
+|---|---|---|
+| `/go2/lidar` | `sensor_msgs/msg/PointCloud2` | 내장 LiDAR 포인트클라우드 |
+| `/go2/lidar/imu` | `sensor_msgs/msg/Imu` | 내장 LiDAR IMU |
+| `/go2/lidar/state` | `unitree_go/msg/LidarState` | 내장 LiDAR 상태 |
+| `/go2/camera/image_raw` | `sensor_msgs/msg/Image` | 전면 영상, 1920 × 1080 |
+| `/go2/camera/image_raw/compressed` | `sensor_msgs/msg/CompressedImage` | JPEG 영상 |
 
 ### MID-360
 

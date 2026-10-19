@@ -17,11 +17,14 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as f:
         try:
             import rclpy
             from rclpy.qos import qos_profile_sensor_data
-            from sensor_msgs.msg import Imu, JointState
+            from sensor_msgs.msg import Image, Imu, JointState, PointCloud2
             from nav_msgs.msg import Odometry
             from geometry_msgs.msg import Twist
             from go2_interface.msg import SportCmd
-            from unitree_api.msg import Request
+            from unitree_api.msg import Request, Response
+            from array import array
+            import cv2
+            import numpy as np
             from unitree_go.msg import LowCmd, LowState, SportModeState
             from tf2_ros import Buffer, TransformListener
             rclpy.init()
@@ -33,6 +36,26 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as f:
             buffer = Buffer(); listener = TransformListener(buffer, node)
             low_pub = node.create_publisher(LowState, '/lowstate', 10)
             sport_pub = node.create_publisher(SportModeState, '/lf/sportmodestate', 10)
+            cloud_pub = node.create_publisher(PointCloud2, '/utlidar/cloud', 10)
+            lidar_imu_pub = node.create_publisher(Imu, '/utlidar/imu', 10)
+            image_response_pub = node.create_publisher(Response, '/api/videohub/response', 10)
+            sensor_samples = {}
+            for topic, cls in [('/go2/lidar', PointCloud2), ('/go2/lidar/imu', Imu),
+                               ('/go2/low_state', LowState), ('/go2/camera/image_raw', Image)]:
+                subscriptions.append(node.create_subscription(cls, topic, lambda msg, t=topic: sensor_samples.__setitem__(t,msg), qos_profile_sensor_data))
+            ok, jpeg = cv2.imencode('.jpg', np.full((8, 12, 3), 120, dtype=np.uint8))
+            assert ok
+            def serve_image(request):
+                assert request.header.identity.api_id == 1001
+                response = Response()
+                response.header.identity = request.header.identity
+                response.binary = array('b', jpeg.tobytes())
+                image_response_pub.publish(response)
+            subscriptions.append(node.create_subscription(Request, '/api/videohub/request', serve_image, 10))
+            cloud = PointCloud2(); cloud.header.frame_id = 'utlidar_lidar'
+            cloud.width = 1; cloud.height = 1; cloud.point_step = 4; cloud.row_step = 4
+            cloud.data = b'\x01\x02\x03\x04'
+            lidar_imu = Imu(); lidar_imu.header.frame_id = 'utlidar_imu'; lidar_imu.angular_velocity.x = 0.25
             requests = []
             low_commands = []
             subscriptions.append(node.create_subscription(Request, '/api/sport/request', requests.append, 10))
@@ -46,8 +69,9 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as f:
             end = time.monotonic()+12
             while time.monotonic()<end:
                 low_pub.publish(low); sport_pub.publish(sport)
+                cloud_pub.publish(cloud); lidar_imu_pub.publish(lidar_imu)
                 rclpy.spin_once(node, timeout_sec=0.1)
-                if len(samples)==3 and buffer.can_transform('odom','imu',rclpy.time.Time()): break
+                if len(samples)==3 and len(sensor_samples)==4 and buffer.can_transform('odom','imu',rclpy.time.Time()): break
             assert process.poll() is None, 'Launch exited early'
             assert set(samples)=={'/go2/imu','/go2/odom','/joint_states'}, list(samples)
             assert samples['/go2/imu'].header.frame_id=='imu'
@@ -55,6 +79,12 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as f:
             odom=samples['/go2/odom']; assert odom.header.frame_id=='odom' and odom.child_frame_id=='base_link'
             assert abs(odom.pose.pose.position.x-2.25)<1e-5 and odom.pose.pose.position.z==0.
             assert buffer.can_transform('odom','imu',rclpy.time.Time()), 'URDF/odometry TF disconnected'
+            assert len(sensor_samples) == 4, 'Missing Go2 sensor output: ' + str(sensor_samples.keys())
+            assert sensor_samples['/go2/lidar'].header == cloud.header
+            assert bytes(sensor_samples['/go2/lidar'].data) == bytes(cloud.data)
+            assert sensor_samples['/go2/lidar/imu'].angular_velocity.x == 0.25
+            assert abs(sensor_samples['/go2/low_state'].motor_state[11].q - low.motor_state[11].q) < 1e-6
+            assert sensor_samples['/go2/camera/image_raw'].width == 12
             assert 'go2_cmd_vel_bridge' in node.get_node_names(), 'Control bridge missing'
             idle_end = time.monotonic() + 0.75
             while time.monotonic() < idle_end:
@@ -88,7 +118,7 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as f:
                 low_command_pub.publish(low_command)
                 rclpy.spin_once(node, timeout_sec=0.1)
             assert low_commands and low_commands[-1].crc == low_command.crc, '/go2/low_cmd was not forwarded'
-            print(json.dumps({'result':'PASS','domain':91,'interface':'lo','topics':sorted(samples),'joint_count':12,'tf':'odom -> base_link -> imu','control_bridge':True,'command_inputs':['/cmd_vel','/go2/sport_cmd','/go2/low_cmd'],'startup_commands':0,'timeout_stop':True},indent=2))
+            print(json.dumps({'result':'PASS','domain':91,'interface':'lo','topics':sorted(samples),'sensor_topics':sorted(sensor_samples),'joint_count':12,'tf':'odom -> base_link -> imu','control_bridge':True,'command_inputs':['/cmd_vel','/go2/sport_cmd','/go2/low_cmd'],'startup_commands':0,'timeout_stop':True},indent=2))
             node.destroy_node(); rclpy.shutdown()
         finally:
             os.killpg(process.pid, signal.SIGTERM)

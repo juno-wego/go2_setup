@@ -43,6 +43,10 @@ def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
         name = display['Name']
         if name == 'Go2 Robot':
             _enable(display, robot_enabled)
+        elif name in ('Go2 Camera', 'Go2 LiDAR'):
+            if not config['go2']['enabled'] or urdf_only:
+                continue
+            _enable(display, True)
         elif name in ('D435i RGB', 'D435i Depth'):
             if not camera_enabled:
                 robot.get('Window Geometry', {}).pop(name, None)

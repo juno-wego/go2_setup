@@ -21,6 +21,7 @@ def main():
     wanted = {
         '/lowstate', '/lf/sportmodestate', '/go2/odom', '/go2/imu',
         '/joint_states', '/livox/lidar', '/livox/imu',
+        '/go2/lidar', '/go2/lidar/imu', '/go2/camera/image_raw',
         '/camera/camera/color/image_raw', '/camera/camera/depth/image_rect_raw',
         '/camera/camera/imu',
     }

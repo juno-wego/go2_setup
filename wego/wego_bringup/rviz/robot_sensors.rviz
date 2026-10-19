@@ -44,6 +44,43 @@ Visualization Manager:
     Show Names: false
     Update Interval: 0
   - Class: rviz_default_plugins/Image
+    Name: Go2 Camera
+    Enabled: true
+    Value: true
+    Normalize Range: true
+    Min Value: 0
+    Max Value: 1
+    Median window: 5
+    Topic:
+      Value: /go2/camera/image_raw/compressed
+      Depth: 1
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+  - Class: rviz_default_plugins/PointCloud2
+    Name: Go2 LiDAR
+    Enabled: true
+    Value: true
+    Alpha: 1
+    Position Transformer: XYZ
+    Color Transformer: Intensity
+    Channel Name: intensity
+    Autocompute Intensity Bounds: true
+    Use rainbow: true
+    Decay Time: 0
+    Style: Points
+    Size (Pixels): 2
+    Size (m): 0.02
+    Selectable: true
+    Use Fixed Frame: true
+    Topic:
+      Value: /go2/lidar
+      Depth: 1
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+      Filter size: 10
+  - Class: rviz_default_plugins/Image
     Name: D435i RGB
     Enabled: true
     Value: true

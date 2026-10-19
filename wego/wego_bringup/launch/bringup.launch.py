@@ -80,6 +80,10 @@ def _setup(context):
                 'use_sim_time': 'false',
             },
         ))
+        actions.append(Node(
+            package='wego_bringup', executable='go2_sensors',
+            name='go2_sensors', output='screen',
+        ))
 
     if config['lidar']['enabled']:
         folder = tempfile.mkdtemp(prefix='wego-mid360-')

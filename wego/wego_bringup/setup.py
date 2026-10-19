@@ -20,5 +20,6 @@ setup(
     license='Apache-2.0',
     entry_points={'console_scripts': [
         'check_hardware = wego_bringup.check_hardware:main',
+        'go2_sensors = wego_bringup.go2_sensors:main',
     ]},
 )

@@ -151,7 +151,27 @@ def test_custom_livox_messages_do_not_enable_pointcloud2_or_lidar_preview(config
     assert_enabled(robot['MID360 Cloud'], False)
     assert all(
         display['Class'] != 'rviz_default_plugins/PointCloud2'
-        for display in robot.values() if display['Enabled']
+        for display in robot.values() if display['Enabled'] and display['Name'] != 'Go2 LiDAR'
     )
     assert_enabled(robot['D435i RGB'], True)
     assert_enabled(robot['D435i Depth'], True)
+
+
+def test_go2_sensors_remain_visible_without_external_sensors(config, render):
+    config['camera']['enabled'] = config['lidar']['enabled'] = False
+
+    robot = displays(render()['robot'])
+
+    assert_enabled(robot['Go2 Camera'], True)
+    assert_enabled(robot['Go2 LiDAR'], True)
+    assert robot['Go2 Camera']['Topic']['Value'] == '/go2/camera/image_raw/compressed'
+    assert robot['Go2 LiDAR']['Topic']['Value'] == '/go2/lidar'
+
+
+def test_go2_sensor_displays_are_absent_when_go2_is_disabled(config, render):
+    config['go2']['enabled'] = False
+
+    robot = displays(render()['robot'])
+
+    assert 'Go2 Camera' not in robot
+    assert 'Go2 LiDAR' not in robot

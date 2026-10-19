@@ -1,0 +1,17 @@
+--- a/cyclonedds_ws/src/unitree/unitree_go/CMakeLists.txt
++++ b/cyclonedds_ws/src/unitree/unitree_go/CMakeLists.txt
+@@ -29,6 +29,7 @@
+         "msg/AudioData.msg"
+         "msg/BmsCmd.msg"
+         "msg/BmsState.msg"
++        "msg/ConfigChangeStatus.msg"
+         "msg/Error.msg"
+         "msg/Go2FrontVideoData.msg"
+         "msg/HeightMap.msg"
+diff --git a/cyclonedds_ws/src/unitree/unitree_go/msg/ConfigChangeStatus.msg b/cyclonedds_ws/src/unitree/unitree_go/msg/ConfigChangeStatus.msg
+new file mode 100644
+--- /dev/null
++++ b/cyclonedds_ws/src/unitree/unitree_go/msg/ConfigChangeStatus.msg
+@@ -0,0 +1,2 @@
++string name
++string content

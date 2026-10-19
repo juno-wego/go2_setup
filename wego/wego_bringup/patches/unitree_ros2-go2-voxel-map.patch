@@ -1,0 +1,22 @@
+--- a/cyclonedds_ws/src/unitree/unitree_go/CMakeLists.txt
++++ b/cyclonedds_ws/src/unitree/unitree_go/CMakeLists.txt
+@@ -48,6 +48,7 @@
+         "msg/SportModeState.msg"
+         "msg/TimeSpec.msg"
+         "msg/UwbState.msg"
++        "msg/VoxelMapCompressed.msg"
+         "msg/UwbSwitch.msg"
+         "msg/WirelessController.msg"
+   DEPENDENCIES geometry_msgs
+diff --git a/cyclonedds_ws/src/unitree/unitree_go/msg/VoxelMapCompressed.msg b/cyclonedds_ws/src/unitree/unitree_go/msg/VoxelMapCompressed.msg
+new file mode 100644
+--- /dev/null
++++ b/cyclonedds_ws/src/unitree/unitree_go/msg/VoxelMapCompressed.msg
+@@ -0,0 +1,7 @@
++float64 stamp
++string frame_id
++float64 resolution
++float64[3] origin
++uint16[3] width
++uint64 src_size
++uint8[] data

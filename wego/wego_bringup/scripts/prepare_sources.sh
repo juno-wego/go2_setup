@@ -18,6 +18,18 @@ for required in \
     fi
 done
 
+# Restore DDS types supplied by the SDK but omitted from the ROS message package.
+for patch in "$wego_src_root"/wego/wego_bringup/patches/unitree_ros2-*.patch; do
+    [ -f "$patch" ] || continue
+    unitree_source="$wego_src_root/drivers/go2/unitree_ros2"
+    if git -C "$unitree_source" apply --check "$patch" 2>/dev/null; then
+        git -C "$unitree_source" apply "$patch"
+    elif ! git -C "$unitree_source" apply --reverse --check "$patch" 2>/dev/null; then
+        printf 'Cannot apply Unitree message patch: %s\n' "$patch" >&2
+        exit 1
+    fi
+done
+
 # The upstream driver stores ROS 1/2 manifests separately in a fresh checkout.
 cp "$wego_src_root/drivers/livox_ros_driver2/package_ROS2.xml" \
     "$wego_src_root/drivers/livox_ros_driver2/package.xml"

@@ -7,7 +7,11 @@
   "unitree_ros2": {
     "path": "src/drivers/go2/unitree_ros2",
     "url": "https://github.com/unitreerobotics/unitree_ros2.git",
-    "commit": "668d1ec5a05d1c38d3306bdca7d59f2ba3581a88"
+    "commit": "668d1ec5a05d1c38d3306bdca7d59f2ba3581a88",
+    "patches": [
+      "wego/wego_bringup/patches/unitree_ros2-go2-voxel-map.patch",
+      "wego/wego_bringup/patches/unitree_ros2-config-change-status.patch"
+    ]
   },
   "unitree_sdk2": {
     "path": "src/drivers/go2/unitree_sdk2",
@@ -30,5 +34,18 @@
     "commit": "34d6c778e1134d8505adcd56bb57acbe7598a459",
     "backend": "RSUSB",
     "path": "src/vendor/librealsense"
+  },
+  "unitree_slam_messages": {
+    "url": "https://github.com/unitreerobotics/unitree_slam.git",
+    "commit": "1e49bfa4dca2c992a566ee7d1d8480d4102149b8",
+    "paths": [
+      "wego/graph_msg",
+      "wego/unitree_interfaces"
+    ]
+  },
+  "unitree_arm_message": {
+    "path": "wego/unitree_arm",
+    "source": "https://unitree-robot.pl/wp-content/uploads/2026/02/Ramie-robota-unitree-D1-instrukcja.pdf",
+    "section": "7.1 ArmString"
   }
 }
