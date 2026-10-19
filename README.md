@@ -1,6 +1,6 @@
 # Go2 + D435i + MID-360 운용 안내
 
-Jetson SSH 접속: ID `nvidia` / 비밀번호 `nvidia`.
+Jetson 로그인: ID `nvidia` / 비밀번호 `nvidia`.
 
 - [실행](#실행)
 - [연결](#연결)
