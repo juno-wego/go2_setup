@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mid360</name>
+  <version>0.1.0</version>
+  <description>Standalone Livox MID360 configuration, SDK and launch support.</description>
+  <maintainer email="go.support@wego-robotics.com">Wego Robotics</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>livox_ros_driver2</exec_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

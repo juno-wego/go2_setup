@@ -1,0 +1,4 @@
+# Standalone device defaults. Aggregate robot profiles can override these.
+network_interface: go2
+robot_ip: 192.168.123.161
+domain_id: 0

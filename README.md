@@ -3,6 +3,7 @@
 
 - [로그인](#로그인)
 - [실행](#실행)
+- [패키지 구조와 빌드](#패키지-구조와-빌드)
 - [연결](#연결)
 - [장치 제원](#장치-제원)
 - [토픽 인터페이스](#토픽-인터페이스)
@@ -21,11 +22,52 @@ Jetson 터미널에서 실행한다.
 
 ```bash
 source ~/wego_ws/install/setup.bash
-ros2 launch wego_bringup bringup.launch.py
+ros2 launch wego bringup.launch.py
 ```
 
 RViz에서 Go2 관절·내장 LiDAR·전면 영상, MID-360 포인트클라우드, D435i RGB·깊이 영상을 확인한다.
 주행·자세 명령은 제어 토픽으로 전달한다. 종료는 실행 터미널에서 `Ctrl+C`.
+
+장치별 단독 실행:
+
+```bash
+ros2 launch go2 bringup.launch.py
+ros2 launch mid360 bringup.launch.py
+ros2 launch d435i bringup.launch.py
+```
+
+설정: `wego/config/robot.yaml`
+
+## 패키지 구조와 빌드
+
+```text
+go2_setup/
+├── build.sh
+├── go2/
+│   ├── bringup/
+│   └── driver/
+├── mid360/
+│   ├── bringup/
+│   │   └── vendor/Livox-SDK2/
+│   └── driver/
+├── d435i/
+│   └── vendor/librealsense/
+└── wego/
+```
+
+초기 준비:
+
+```bash
+git submodule update --init --recursive
+bash build.sh
+```
+
+빌드:
+
+```bash
+source install/setup.bash
+colcon build
+```
 
 ## 연결
 
@@ -80,8 +122,6 @@ D435i 영상: RGB 640 × 480 @ 15 fps, 깊이 480 × 270 @ 15 fps.
 | 동작 온도 / 보호 등급 | −20–55°C / IP67 |
 
 ## 토픽 인터페이스
-
-[Go2 원본 토픽](docs/go2_topics.md)
 
 ### Go2 상태
 

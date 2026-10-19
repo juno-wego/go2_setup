@@ -1,0 +1,10 @@
+enabled: true
+namespace: camera
+name: camera
+# Empty selects the attached camera; robot profiles can pin a serial number.
+serial_no: ''
+# Conservative profiles suitable for the current USB 2 connection.
+depth_profile: 480x270x15
+color_profile: 640x480x15
+enable_imu: true
+pointcloud: false
