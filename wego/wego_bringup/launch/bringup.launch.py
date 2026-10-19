@@ -37,19 +37,10 @@ def _driver_launch(source, arguments):
 def _setup(context):
     share = Path(get_package_share_directory('wego_bringup'))
     config = load_config(LaunchConfiguration('config_file').perform(context))
-    for arg, section in (
-        ('enable_go2', 'go2'), ('enable_lidar', 'lidar'), ('enable_camera', 'camera')
-    ):
-        override = LaunchConfiguration(arg).perform(context).lower().strip()
-        if override:
-            if override not in ('true', 'false'):
-                raise ValueError(f'{arg} must be true or false.')
-            config[section]['enabled'] = override == 'true'
-    interface = LaunchConfiguration('network_interface').perform(context).strip()
-    interface = interface or config['go2']['network_interface']
+    interface = config['go2']['network_interface']
     if interface and not (Path('/sys/class/net') / interface).exists():
         raise ValueError(f'Network interface {interface!r} does not exist. '
-                         'Set network_interface:=<Go2 LAN interface>.')
+                         'Set go2.network_interface in the robot configuration.')
     actions = [
         SetEnvironmentVariable('RMW_IMPLEMENTATION', 'rmw_cyclonedds_cpp'),
         SetEnvironmentVariable('ROS_DOMAIN_ID', str(config['go2']['domain_id'])),
@@ -83,7 +74,7 @@ def _setup(context):
                 'network_interface': interface,
                 'params_file': str(share / 'config/go2.yaml'),
                 'description_file': str(description),
-                'enable_control': str(config['go2']['enable_control']).lower(),
+                'enable_control': 'true',
                 'enable_bridge': 'true', 'enable_description': 'true',
                 'rviz': 'false',
                 'use_sim_time': 'false',
@@ -165,10 +156,6 @@ def generate_launch_description():
     share = Path(get_package_share_directory('wego_bringup'))
     return LaunchDescription([
         DeclareLaunchArgument('config_file', default_value=str(share / 'config/robot.yaml')),
-        DeclareLaunchArgument('network_interface', default_value=''),
-        DeclareLaunchArgument('enable_go2', default_value=''),
-        DeclareLaunchArgument('enable_lidar', default_value=''),
-        DeclareLaunchArgument('enable_camera', default_value=''),
-        DeclareLaunchArgument('rviz', default_value='false'),
+        DeclareLaunchArgument('rviz', default_value='true'),
         OpaqueFunction(function=_setup),
     ])

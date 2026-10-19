@@ -13,11 +13,11 @@ Jetson 터미널에서 실행한다.
 
 ```bash
 source ~/wego_ws/install/setup.bash
-ros2 launch wego_bringup bringup.launch.py rviz:=true
+ros2 launch wego_bringup bringup.launch.py
 ```
 
 RViz에서 Go2 관절 상태, MID-360 포인트클라우드, D435i RGB·깊이 영상을 확인한다.
-이동 제어는 기본 비활성이다. 종료는 실행 터미널에서 `Ctrl+C`.
+주행·자세 명령은 제어 토픽으로 전달한다. 종료는 실행 터미널에서 `Ctrl+C`.
 
 ## 연결
 
@@ -117,7 +117,7 @@ ros2 run wego_bringup check_hardware --duration 10
 | `/camera/camera/imu` | `sensor_msgs/msg/Imu` | 결합 IMU |
 | `/camera/camera/depth/color/points` | `sensor_msgs/msg/PointCloud2` | 포인트클라우드 (기본 비활성) |
 
-### Go2 제어 입력 (기본 비활성)
+### Go2 제어 입력
 
 | 토픽 | 메시지 타입 | 내용 |
 |---|---|---|
@@ -133,4 +133,3 @@ ros2 run wego_bringup check_hardware --duration 10
 |---|---|---|---|
 | `base_link → imu` | `(-0.02557, 0, 0.04232)` | `(0, 0, 0)` | 고정값 |
 | `imu → livox_frame` | `(0.187, 0, 0.0803)` | `(0, 13, 0)` | 장착 참고값, yaw 미확인 |
-| `base_link → camera_link` | — | — | 장착 TF 비활성 |

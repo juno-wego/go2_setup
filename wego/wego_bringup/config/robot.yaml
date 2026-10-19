@@ -5,7 +5,6 @@ go2:
   network_interface: go2
   robot_ip: 192.168.123.161
   domain_id: 0
-  enable_control: false
 lidar:
   enabled: true
   # Sensor discovery reported device type 35 (Livox SDK Mid360s).
@@ -40,8 +39,6 @@ tf:
     rpy: [0.0, 0.22689280275926285, 0.0]
     yaw_verified: false
   d435i:
-    # The public Go2Py camera calibration is for a different installation.
-    # Keep this mount off until the actual D435i mount is established.
     enabled: false
     status: unconfigured
     parent: base_link

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from launch import LaunchContext, LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument, OpaqueFunction, SetEnvironmentVariable,
+    DeclareLaunchArgument, LogInfo, OpaqueFunction, SetEnvironmentVariable,
     SetLaunchConfiguration,
 )
 from launch.launch_description_source import LaunchDescriptionSource
@@ -28,6 +28,33 @@ def bringup(monkeypatch):
     return module
 
 
+def test_default_go2_launch_accepts_commands_without_a_control_switch(bringup, monkeypatch, tmp_path):
+    config = yaml.safe_load((ROOT / 'config/robot.yaml').read_text())
+    assert 'enable_control' not in config['go2']
+    config['go2']['network_interface'] = 'lo'
+    config['lidar']['enabled'] = config['camera']['enabled'] = False
+    config['tf']['publish_mounts'] = False
+    path = tmp_path / 'robot.yaml'
+    path.write_text(yaml.safe_dump(config))
+    monkeypatch.setattr(bringup, 'get_package_share_directory', lambda package: str(tmp_path / package))
+    included = []
+
+    def include_driver(source, arguments):
+        included.append(arguments)
+        return LogInfo(msg='Driver include captured for inspection')
+
+    monkeypatch.setattr(bringup, '_driver_launch', include_driver)
+    context = LaunchContext()
+    context.launch_configurations.update(config_file=str(path), rviz='false')
+    bringup._setup(context)
+
+    assert len(included) == 1
+    assert included[0]['enable_control'] == 'true'
+    declared = [action for action in bringup.generate_launch_description().entities
+                if isinstance(action, DeclareLaunchArgument)]
+    assert {action.name for action in declared} == {'config_file', 'rviz'}
+
+
 @pytest.mark.parametrize(
     'arguments, defaults',
     [
@@ -35,7 +62,7 @@ def bringup(monkeypatch):
             {
                 'network_interface': 'go2',
                 'params_file': '/driver/go2.yaml',
-                'enable_control': 'false',
+                'enable_control': 'true',
                 'enable_bridge': 'true',
                 'enable_description': 'true',
                 'rviz': 'false',

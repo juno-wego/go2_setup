@@ -2,7 +2,7 @@
 
 ```bash
 source ~/wego_ws/install/setup.bash
-ros2 launch wego_bringup bringup.launch.py rviz:=true
+ros2 launch wego_bringup bringup.launch.py
 ```
 
 종료: `Ctrl+C`.
