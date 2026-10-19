@@ -12,10 +12,10 @@ import subprocess
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        '--go2-interface', default='enP8p1s0',
+        '--go2-interface', default='go2',
         help='Go2 Ethernet interface (default: %(default)s).')
     parser.add_argument(
-        '--lidar-interface', default='enx00181af29c25',
+        '--lidar-interface', default='mid360',
         help='MID360 Ethernet interface (default: %(default)s).')
     parser.add_argument(
         '--interface',

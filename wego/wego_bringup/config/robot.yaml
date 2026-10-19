@@ -2,7 +2,7 @@
 # All translation values use metres; all rpy values use radians.
 go2:
   enabled: true
-  network_interface: enP8p1s0
+  network_interface: go2
   robot_ip: 192.168.123.161
   domain_id: 0
   enable_control: false

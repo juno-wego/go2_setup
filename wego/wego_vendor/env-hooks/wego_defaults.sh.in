@@ -1,6 +1,6 @@
 # Runtime defaults; explicit user settings take precedence.
 export RMW_IMPLEMENTATION="${RMW_IMPLEMENTATION:-rmw_cyclonedds_cpp}"
 export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}"
-if [ -z "${CYCLONEDDS_URI:-}" ] && [ -e /sys/class/net/enP8p1s0 ]; then
-    export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="enP8p1s0" priority="default" multicast="default" /></Interfaces></General></Domain></CycloneDDS>'
+if [ -z "${CYCLONEDDS_URI:-}" ] && [ -e /sys/class/net/go2 ]; then
+    export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="go2" priority="default" multicast="default" /></Interfaces></General></Domain></CycloneDDS>'
 fi

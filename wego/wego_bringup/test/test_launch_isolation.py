@@ -33,7 +33,7 @@ def bringup(monkeypatch):
     [
         pytest.param(
             {
-                'network_interface': 'enP8p1s0',
+                'network_interface': 'go2',
                 'params_file': '/driver/go2.yaml',
                 'enable_control': 'false',
                 'enable_bridge': 'true',
@@ -72,7 +72,7 @@ def test_driver_arguments_and_dds_environment_are_scoped(
         'RMW_IMPLEMENTATION': 'rmw_cyclonedds_cpp',
         'CYCLONEDDS_URI': (
             '<CycloneDDS><Domain><General><Interfaces>'
-            '<NetworkInterface name="enP8p1s0"/>'
+            '<NetworkInterface name="go2"/>'
             '</Interfaces></General></Domain></CycloneDDS>'
         ),
     }

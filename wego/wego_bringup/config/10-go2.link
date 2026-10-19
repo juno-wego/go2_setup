@@ -1,0 +1,5 @@
+[Match]
+MACAddress=74:25:54:00:0f:80
+
+[Link]
+Name=go2

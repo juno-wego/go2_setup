@@ -1,141 +1,136 @@
-# Go2 + Livox + RealSense setup
+# Go2 + D435i + MID-360 운용 안내
 
-Jetson에서 검증한 Go2, Livox MID360 계열, RealSense D435i의 ROS 2 Humble 통합 구성이다.
-이 저장소를 `~/wego_ws/src` 위치에 내려받아 사용한다.
-
-```text
-wego_ws/
-├── src/                         # 이 저장소
-│   ├── drivers/
-│   │   ├── go2/                 # Wego humble + Unitree 서브모듈
-│   │   └── livox_ros_driver2/
-│   ├── vendor/
-│   │   ├── Livox-SDK2/
-│   │   └── librealsense/
-│   └── wego/
-│       ├── wego_bringup/         # 통합 launch, 설정, RViz, 빌드 도구
-│       └── wego_vendor/          # SDK 및 DDS 환경 설정
-├── build/                       # 빌드 후 생성
-├── install/                     # 빌드 후 생성
-└── log/                         # 빌드 후 생성
-```
-
-## 소스 다운로드
-
-새 워크스페이스에서 실행한다. 기존 `~/wego_ws/src`가 있으면 다른 워크스페이스 경로를 사용한다.
-
-```bash
-mkdir -p ~/wego_ws
-git clone --recurse-submodules https://github.com/juno-wego/go2_setup.git ~/wego_ws/src
-```
-
-외부 드라이버·SDK는 Jetson에서 검증한 커밋에 고정한 서브모듈이다.
-GitHub의 **Download ZIP** 대신 위 명령으로 내려받는다.
-이미 일반 clone을 했다면 다음 명령으로 외부 소스를 받는다.
-
-```bash
-git -C ~/wego_ws/src submodule update --init --recursive
-```
-
-고정 버전 목록: [dependencies.lock.json](wego/wego_bringup/dependencies.lock.json).
-각 외부 소스의 라이선스는 해당 서브모듈을 따른다.
-
-## 빌드
-
-Ubuntu 22.04와 ROS 2 Humble이 설치된 환경에서 사용한다.
-검증 환경은 JetPack 6.2.1 / L4T 36.4.4, RealSense ROS 4.58.4 및 librealsense 2.58.4이다.
-ROS 설치, 제조사 BSP 플래싱, OS 부팅 파일은 이 저장소에 포함하지 않는다.
-
-필요한 도구와 ROS 패키지를 설치한다. ROS 2 apt 저장소가 설정되어 있어야 한다.
-
-```bash
-sudo apt update
-sudo apt install -y build-essential cmake pkg-config git \
-  libusb-1.0-0-dev libudev-dev libssl-dev libpcl-dev libapr1-dev \
-  python3-colcon-common-extensions python3-yaml python3-pytest \
-  ros-humble-ros-base ros-humble-ament-cmake-auto \
-  ros-humble-rosidl-default-generators ros-humble-pcl-conversions \
-  ros-humble-rmw-cyclonedds-cpp ros-humble-rviz2 \
-  ros-humble-robot-state-publisher ros-humble-joint-state-publisher \
-  ros-humble-xacro ros-humble-tf2-ros ros-humble-realsense2-camera
-
-bash ~/wego_ws/src/wego/wego_bringup/scripts/build.sh
-```
-
-첫 빌드는 Livox SDK와 RSUSB 방식의 librealsense도 컴파일하므로 시간이 걸린다.
-이후에는 `install/wego_vendor`에 설치한 SDK를 재사용한다.
-D435i의 USB 접근 권한을 위해 공식 SDK의 udev 규칙도 적용한다.
-
-```bash
-sudo bash ~/wego_ws/src/vendor/librealsense/scripts/setup_udev_rules.sh
-```
-
-규칙 적용 후 카메라 USB를 다시 연결한다.
+- [실행](#실행)
+- [연결](#연결)
+- [수신 확인](#수신-확인)
+- [장치 제원](#장치-제원)
+- [토픽 인터페이스](#토픽-인터페이스)
+- [좌표계](#좌표계)
 
 ## 실행
 
-Jetson 데스크톱 터미널에서 실행한다.
+Jetson 터미널에서 실행한다.
 
 ```bash
 source ~/wego_ws/install/setup.bash
 ros2 launch wego_bringup bringup.launch.py rviz:=true
 ```
 
-Go2 모델과 실제 관절 상태, D435i RGB·깊이 영상, Livox 포인트클라우드를 표시한다.
-기본 설정에서는 Go2 상태를 수신하며 이동 명령을 보내지 않는다.
-MID360은 IMU로 확인한 13° 브래킷 참고값을 사용해 Go2와 같은 창에 표시한다.
-위치는 참고값이고 yaw는 사용자 확인 전이다. D435i 장착 TF는 아직 비활성화 상태다.
+RViz에서 Go2 관절 상태, MID-360 포인트클라우드, D435i RGB·깊이 영상을 확인한다.
+이동 제어는 기본 비활성이다. 종료는 실행 터미널에서 `Ctrl+C`.
 
-로봇 연결 없이 URDF 형태만 확인하려면:
+## 연결
 
-```bash
-ros2 launch wego_bringup view_robot.launch.py
-```
-
-데이터 수신 확인:
-
-```bash
-ros2 run wego_bringup check_hardware --duration 10
-```
-
-## 장치 설정
-
-설정 파일: [robot.yaml](wego/wego_bringup/config/robot.yaml).
-포트 이름, IP, 카메라 일련번호는 실제 연결에 맞춰 변경한다.
-
-| 장치 | 현재 Jetson 인터페이스 | Jetson IP | 장치 IP |
+| 장치 | 연결 | Jetson IP | 장치 IP |
 |---|---|---|---|
-| Go2 | `enP8p1s0` | `192.168.123.99/24` | `192.168.123.161` |
-| Livox | `enx00181af29c25` | `192.168.1.5/24` | `192.168.1.177` |
+| Go2 | LAN (`go2`) | `192.168.123.99/24` | `192.168.123.161` |
+| MID-360 | LAN (`mid360`) | `192.168.1.5/24` | `192.168.1.177` |
 | D435i | USB | — | — |
 
-현재 라이다의 검색 응답은 장치 타입 35이므로 `lidar.model: Mid360s`를 사용한다.
-일반 MID360은 `lidar.model: MID360`으로 설정한다.
-다른 Jetson에서 센서용 IPv4 주소를 임시 추가하려면:
+영상 출력: RGB 640 × 480 @ 15 fps, 깊이 480 × 270 @ 15 fps.
 
-```bash
-sudo python3 ~/wego_ws/src/wego/wego_bringup/scripts/configure_network.py
-```
+## 수신 확인
 
-임시 주소는 재부팅 후 사라진다. 상시 사용하려면 각 LAN 연결에 수동 IPv4 주소를 저장한다.
-Wi-Fi로 인터넷을 사용한다면 센서용 LAN에는 기본 게이트웨이를 지정하지 않는다.
-
-`tf.publish_mounts`와 센서별 `enabled`로 장착 TF를 선택한다.
-`status: reference`는 `source`가 필요한 참고값, `status: measured`는 실측/보정값이다.
-현재 `imu → livox_frame`은 xyz `(0.187, 0, 0.0803)m`, rpy `(0, 13°, 0)`이다.
-현재 URDF의 `base_link` 기준 합성 위치는 `(0.16143, 0, 0.12262)m`다.
-D435i는 현재 장착의 위치·방향을 확인한 뒤 활성화한다.
-현재 D435i는 USB 2 프로파일로 설정되어 있으며 IMU 기본 보정값 사용 경고가 확인됐다.
-
-상세 토픽·TF·SDK 안내: [wego_bringup README](wego/wego_bringup/README.md).
-
-## 확인한 내용
-
-Jetson에서 Go2 관절·IMU·odom, Livox 포인트클라우드·IMU,
-D435i RGB·깊이·IMU의 실제 수신과 RViz 표시를 확인했다.
-설정·합성 URDF·RViz·launch 격리 테스트를 제공한다.
+별도 터미널에서 실행한다.
 
 ```bash
 source ~/wego_ws/install/setup.bash
-python3 -m pytest -q ~/wego_ws/src/wego/wego_bringup/test
+ros2 run wego_bringup check_hardware --duration 10
 ```
+
+장치별 수신 수(`messages`)를 확인한다.
+
+## 장치 제원
+
+### [Unitree Go2](https://www.unitree.com/go2/)
+
+| 항목 | 제원 |
+|---|---|
+| 크기 | 기립 700 × 310 × 400 mm, 엎드림 760 × 310 × 200 mm |
+| 무게 | 배터리 포함 약 15 kg |
+| 관절 | 12개 |
+| 전압 | 28–33.6 V |
+| 배터리 | 8,000 / 15,000 mAh |
+| 사용 시간 | 약 1–4시간 |
+| 속도 | AIR 2.5 m/s, PRO 3.5 m/s, X·EDU 3.7 m/s |
+| 적재 하중 | AIR 약 7 kg, PRO·X·EDU 약 8 kg |
+
+### [RealSense D435i](https://www.realsenseai.com/download/21345/?tmstv=1770190765)
+
+| 항목 | 제원 |
+|---|---|
+| 크기 / 무게 | 90 × 25 × 25 mm / 약 75 g |
+| 깊이 측정 | 능동 스테레오, Global Shutter |
+| 권장 거리 | 0.3–3 m |
+| 깊이 영상 | 1280 × 720 @ 30 fps, 848 × 480 @ 90 fps |
+| RGB 영상 | 1920 × 1080 @ 30 fps, Rolling Shutter |
+| 시야각 (수평 × 수직) | 깊이 87° × 58°, RGB 69° × 42° |
+| IMU | 6축 가속도·자이로 |
+| 연결 / 전원 | USB-C, USB 3.1 Gen 1 / 5 V |
+
+### [Livox MID-360](https://www.livoxtech.com/mid-360/specs)
+
+| 항목 | 제원 |
+|---|---|
+| 크기 / 무게 | 65 × 65 × 60 mm / 265 g |
+| 측정 거리 | 40 m (반사율 10%, 100 klx) |
+| 시야각 | 수평 360°, 수직 −7°~52° |
+| 근거리 사각 | 0.1 m |
+| 점 출력 / 프레임률 | 200,000 points/s / 10 Hz |
+| IMU | 6축 가속도·자이로 |
+| 연결 | 100 BASE-TX Ethernet |
+| 전원 / 소비전력 | 9–27 V DC / 6.5 W |
+| 동작 온도 / 보호 등급 | −20–55°C / IP67 |
+
+## 토픽 인터페이스
+
+### Go2 상태
+
+| 토픽 | 메시지 타입 | 내용 |
+|---|---|---|
+| `/go2/odom` | `nav_msgs/msg/Odometry` | 위치·속도 |
+| `/go2/imu` | `sensor_msgs/msg/Imu` | 본체 IMU |
+| `/joint_states` | `sensor_msgs/msg/JointState` | 12관절 상태 |
+| `/go2/foot_force` | `std_msgs/msg/Int16MultiArray` | 발 힘 원시값 |
+| `/go2/battery_state` | `go2_interface/msg/Go2BatteryState` | 전압·전류·잔량·충전 상태 |
+| `/go2/sport_state` | `unitree_go/msg/SportModeState` | 로봇 동작 상태 |
+
+### MID-360
+
+| 토픽 | 메시지 타입 | 내용 |
+|---|---|---|
+| `/livox/lidar` | `sensor_msgs/msg/PointCloud2` | 포인트클라우드, 10 Hz |
+| `/livox/imu` | `sensor_msgs/msg/Imu` | 가속도 [g]·각속도 [rad/s] |
+
+### D435i
+
+| 토픽 | 메시지 타입 | 내용 |
+|---|---|---|
+| `/camera/camera/color/image_raw` | `sensor_msgs/msg/Image` | RGB 영상 |
+| `/camera/camera/depth/image_rect_raw` | `sensor_msgs/msg/Image` | 깊이 영상 |
+| `/camera/camera/aligned_depth_to_color/image_raw` | `sensor_msgs/msg/Image` | RGB에 정렬한 깊이 영상 |
+| `/camera/camera/color/camera_info` | `sensor_msgs/msg/CameraInfo` | RGB 내부 파라미터 |
+| `/camera/camera/depth/camera_info` | `sensor_msgs/msg/CameraInfo` | 깊이 내부 파라미터 |
+| `/camera/camera/aligned_depth_to_color/camera_info` | `sensor_msgs/msg/CameraInfo` | 정렬 깊이 내부 파라미터 |
+| `/camera/camera/gyro/sample` | `sensor_msgs/msg/Imu` | 자이로 |
+| `/camera/camera/accel/sample` | `sensor_msgs/msg/Imu` | 가속도 |
+| `/camera/camera/imu` | `sensor_msgs/msg/Imu` | 결합 IMU |
+| `/camera/camera/depth/color/points` | `sensor_msgs/msg/PointCloud2` | 포인트클라우드 (기본 비활성) |
+
+### Go2 제어 입력 (기본 비활성)
+
+| 토픽 | 메시지 타입 | 내용 |
+|---|---|---|
+| `/cmd_vel` | `geometry_msgs/msg/Twist` | 이동 속도 [m/s]·회전 속도 [rad/s] |
+| `/go2/sport_cmd` | `go2_interface/msg/SportCmd` | 자세·동작 명령 |
+| `/go2/low_cmd` | `unitree_go/msg/LowCmd` | 저수준 명령 |
+
+`/cmd_vel` 수신이 0.5초간 중단되면 정지한다.
+
+## 좌표계
+
+| 변환 | xyz [m] | rpy [°] | 상태 |
+|---|---|---|---|
+| `base_link → imu` | `(-0.02557, 0, 0.04232)` | `(0, 0, 0)` | 고정값 |
+| `imu → livox_frame` | `(0.187, 0, 0.0803)` | `(0, 13, 0)` | 장착 참고값, yaw 미확인 |
+| `base_link → camera_link` | — | — | 장착 TF 비활성 |
