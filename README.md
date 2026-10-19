@@ -83,7 +83,8 @@ ros2 launch wego_bringup bringup.launch.py rviz:=true
 
 Go2 모델과 실제 관절 상태, D435i RGB·깊이 영상, Livox 포인트클라우드를 표시한다.
 기본 설정에서는 Go2 상태를 수신하며 이동 명령을 보내지 않는다.
-장착 TF를 실측하기 전에는 라이다를 센서 좌표계의 별도 RViz 창에 표시한다.
+MID360은 IMU로 확인한 13° 브래킷 참고값을 사용해 Go2와 같은 창에 표시한다.
+위치는 참고값이고 yaw는 사용자 확인 전이다. D435i 장착 TF는 아직 비활성화 상태다.
 
 로봇 연결 없이 URDF 형태만 확인하려면:
 
@@ -119,8 +120,11 @@ sudo python3 ~/wego_ws/src/wego/wego_bringup/scripts/configure_network.py
 임시 주소는 재부팅 후 사라진다. 상시 사용하려면 각 LAN 연결에 수동 IPv4 주소를 저장한다.
 Wi-Fi로 인터넷을 사용한다면 센서용 LAN에는 기본 게이트웨이를 지정하지 않는다.
 
-`tf.mid360`, `tf.d435i`의 실측 xyz(m)·rpy(rad)를 입력하고
-`tf.calibrated`, `tf.publish_mounts`를 모두 `true`로 설정하면 장착 TF를 활성화한다.
+`tf.publish_mounts`와 센서별 `enabled`로 장착 TF를 선택한다.
+`status: reference`는 `source`가 필요한 참고값, `status: measured`는 실측/보정값이다.
+현재 `imu → livox_frame`은 xyz `(0.187, 0, 0.0803)m`, rpy `(0, 13°, 0)`이다.
+현재 URDF의 `base_link` 기준 합성 위치는 `(0.16143, 0, 0.12262)m`다.
+D435i는 현재 장착의 위치·방향을 확인한 뒤 활성화한다.
 현재 D435i는 USB 2 프로파일로 설정되어 있으며 IMU 기본 보정값 사용 경고가 확인됐다.
 
 상세 토픽·TF·SDK 안내: [wego_bringup README](wego/wego_bringup/README.md).
@@ -129,7 +133,7 @@ Wi-Fi로 인터넷을 사용한다면 센서용 LAN에는 기본 게이트웨이
 
 Jetson에서 Go2 관절·IMU·odom, Livox 포인트클라우드·IMU,
 D435i RGB·깊이·IMU의 실제 수신과 RViz 표시를 확인했다.
-설정 및 launch 격리 테스트 10개가 통과했다.
+설정·합성 URDF·RViz·launch 격리 테스트를 제공한다.
 
 ```bash
 source ~/wego_ws/install/setup.bash

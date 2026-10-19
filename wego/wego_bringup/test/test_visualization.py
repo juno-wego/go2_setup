@@ -27,7 +27,7 @@ def config():
     settings['go2']['enabled'] = True
     settings['lidar'].update(enabled=True, xfer_format=0)
     settings['camera'].update(enabled=True, pointcloud=False)
-    settings['tf'].update(calibrated=False, publish_mounts=False)
+    settings['tf'].update(publish_mounts=False)
     return settings
 
 
@@ -82,10 +82,11 @@ def test_uncalibrated_sensors_use_independent_frames_and_configured_topics(confi
 
 
 def test_calibrated_mounts_put_clouds_in_robot_view_without_duplicate_lidar(config, render):
-    config['tf'].update(calibrated=True, publish_mounts=True)
+    config['tf'].update(publish_mounts=True)
     # Synthetic measurements make this a complete calibrated test configuration.
     for sensor in ('mid360', 'd435i'):
-        config['tf'][sensor].update(xyz=[0.1, 0.2, 0.3], rpy=[0.0, 0.0, 0.0])
+        config['tf'][sensor].update(enabled=True, status='measured',
+                                    xyz=[0.1, 0.2, 0.3], rpy=[0.0, 0.0, 0.0])
     config['camera']['pointcloud'] = True
 
     views = render()
@@ -95,6 +96,30 @@ def test_calibrated_mounts_put_clouds_in_robot_view_without_duplicate_lidar(conf
     assert_enabled(robot['MID360 Cloud'], True)
     assert_enabled(robot['D435i Cloud'], True)
     assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'base_link'
+
+
+def test_reference_lidar_mount_combines_only_the_lidar_cloud(config, render):
+    config['tf']['publish_mounts'] = True
+    config['camera']['pointcloud'] = True
+
+    views = render()
+
+    assert set(views) == {'robot'}
+    robot = displays(views['robot'])
+    assert_enabled(robot['MID360 Cloud'], True)
+    assert_enabled(robot['D435i Cloud'], False)
+    assert_enabled(robot['D435i RGB'], True)
+
+
+def test_lidar_reference_does_not_connect_to_an_unmounted_camera_without_go2(config, render):
+    config['go2']['enabled'] = False
+    config['tf']['publish_mounts'] = True
+
+    views = render()
+
+    assert set(views) == {'robot', 'lidar'}
+    assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'camera_link'
+    assert_enabled(displays(views['robot'])['MID360 Cloud'], False)
 
 
 def test_urdf_only_contains_robot_tf_and_grid_even_when_sensors_are_enabled(config, render):

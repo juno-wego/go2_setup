@@ -6,6 +6,8 @@ import tempfile
 
 import yaml
 
+from wego_bringup.configuration import active_mounts
+
 
 def _enable(display, enabled):
     display['Enabled'] = bool(enabled)
@@ -22,8 +24,7 @@ def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
     camera_enabled = camera['enabled'] and not urdf_only
     lidar_enabled = lidar['enabled'] and not urdf_only
     robot_enabled = config['go2']['enabled'] or urdf_only
-    mounts_ready = (config['tf'].get('publish_mounts') is True
-                    and config['tf'].get('calibrated') is True)
+    mounts = active_mounts(config)
     fixed_frame = 'base_link'
     if not robot_enabled:
         if camera_enabled:
@@ -36,7 +37,7 @@ def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
         if str(v).strip('/'))
     cloud_available = lidar_enabled and int(lidar['xfer_format']) == 0
     lidar_in_robot = cloud_available and (
-        mounts_ready or fixed_frame == lidar['frame_id'])
+        (robot_enabled and 'mid360' in mounts) or fixed_frame == lidar['frame_id'])
     displays = []
     for display in robot['Visualization Manager']['Displays']:
         name = display['Name']
@@ -55,7 +56,8 @@ def write_rviz_configs(config, template_dir, output_dir, urdf_only=False):
         elif name == 'D435i Cloud':
             display['Topic']['Value'] = camera_prefix + '/depth/color/points'
             _enable(display, camera_enabled and camera['pointcloud'] and (
-                mounts_ready or fixed_frame == camera['name'] + '_link'))
+                (robot_enabled and 'd435i' in mounts)
+                or fixed_frame == camera['name'] + '_link'))
         if urdf_only and name in ('MID360 Cloud', 'D435i Cloud'):
             continue
         displays.append(display)

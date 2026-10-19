@@ -7,7 +7,8 @@ from launch import LaunchDescription
 from launch.actions import LogInfo, SetEnvironmentVariable
 from launch_ros.actions import Node
 
-from wego_bringup.configuration import load_config
+from wego_bringup.configuration import load_config, active_mounts
+from wego_bringup.robot_description import mounted_description
 from wego_bringup.visualization import rviz_actions
 
 
@@ -16,6 +17,7 @@ def generate_launch_description():
     go2_share = Path(get_package_share_directory('go2_description'))
     description = (go2_share / 'urdf/go2_description.urdf').read_text()
     config = load_config(share / 'config/robot.yaml')
+    description = mounted_description(description, active_mounts(config))
     config['go2']['enabled'] = True
     config['lidar']['enabled'] = config['camera']['enabled'] = False
     actions = [

@@ -16,7 +16,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-from wego_bringup.configuration import load_config, lidar_config, validate_mounts
+from wego_bringup.configuration import load_config, lidar_config, active_mounts
+from wego_bringup.robot_description import mounted_description
 from wego_bringup.visualization import rviz_actions
 
 
@@ -62,13 +63,26 @@ def _setup(context):
             '</Interfaces></General></Domain></CycloneDDS>',
         ))
 
+    mounts = active_mounts(config)
+
     if config['go2']['enabled']:
         go2_share = Path(get_package_share_directory('go2_base'))
+        description_share = Path(get_package_share_directory('go2_description'))
+        description = description_share / 'urdf/go2_description.urdf'
+        if mounts:
+            folder = tempfile.mkdtemp(prefix='wego-description-')
+            mounted_path = Path(folder) / 'go2_sensors.urdf'
+            mounted_path.write_text(mounted_description(description.read_text(), mounts))
+            description = mounted_path
+            actions.append(RegisterEventHandler(OnShutdown(on_shutdown=[
+                OpaqueFunction(function=_cleanup, kwargs={'folder': folder})
+            ])))
         actions.append(_driver_launch(
             PythonLaunchDescriptionSource(str(go2_share / 'launch/go2_bringup.launch.py')),
             {
                 'network_interface': interface,
                 'params_file': str(share / 'config/go2.yaml'),
+                'description_file': str(description),
                 'enable_control': str(config['go2']['enable_control']).lower(),
                 'enable_bridge': 'true', 'enable_description': 'true',
                 'rviz': 'false',
@@ -115,18 +129,14 @@ def _setup(context):
             PythonLaunchDescriptionSource(str(rs_share / 'launch/rs_launch.py')), args,
         ))
 
-    if config['tf'].get('publish_mounts', False):
-        validate_mounts(config['tf'])
-        expected = {
-            'mid360': config['lidar']['frame_id'],
-            'd435i': config['camera']['name'] + '_link',
-        }
-        for key, section in (('mid360', 'lidar'), ('d435i', 'camera')):
-            if not config[section]['enabled']:
-                continue
-            mount = config['tf'][key]
-            if mount['child'] != expected[key]:
-                raise ValueError(f'tf.{key}.child must match driver frame {expected[key]}.')
+    for key, mount in mounts.items():
+        actions.append(LogInfo(msg=(
+            f'{key} mount: {mount["parent"]} -> {mount["child"]}; '
+            f'status={mount["status"]}, yaw_verified={mount.get("yaw_verified", False)}'
+        )))
+        if not config['go2']['enabled']:
+            # With Go2 enabled the composite URDF owns this fixed joint.
+            # Publishing the same child from a second TF source is avoided.
             x, y, z = mount['xyz']
             roll, pitch, yaw = mount['rpy']
             actions.append(Node(
@@ -138,10 +148,10 @@ def _setup(context):
                     '--frame-id', mount['parent'], '--child-frame-id', mount['child'],
                 ],
             ))
-    else:
+    if not mounts:
         actions.append(LogInfo(msg=(
-            'Sensor mount TF is disabled until measured xyz/rpy are entered '
-            'in robot.yaml. Go2 TF and RealSense internal TF remain available.'
+            'No sensor mounting TF is enabled for this launch. '
+            'Go2 TF and RealSense internal TF remain available.'
         )))
     rviz = LaunchConfiguration('rviz').perform(context).lower().strip()
     if rviz not in ('true', 'false', '1', '0'):

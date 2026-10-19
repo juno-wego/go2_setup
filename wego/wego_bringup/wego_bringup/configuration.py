@@ -32,14 +32,17 @@ def load_config(path):
 
 
 def validate_mounts(tf_config):
-    if tf_config.get('calibrated') is not True:
-        raise ValueError(
-            'Mount TF requires tf.calibrated: true and measured xyz/rpy values. '
-            'Unmeasured default mounts are not published.'
-        )
+    """Validate enabled mounts, retaining reference versus measured provenance."""
     children = set()
+    mounts = {}
     for name in ('mid360', 'd435i'):
         mount = tf_config[name]
+        if mount.get('enabled') is not True:
+            continue
+        if mount.get('status') not in ('reference', 'measured'):
+            raise ValueError(f'tf.{name} needs a reference or measured mount status.')
+        if mount['status'] == 'reference' and not mount.get('source'):
+            raise ValueError(f'tf.{name} reference mount requires a source.')
         parent, child = mount['parent'], mount['child']
         if not parent or not child or parent == child or child in children:
             raise ValueError(f'Invalid/duplicate mount frame for {name}.')
@@ -47,10 +50,40 @@ def validate_mounts(tf_config):
         for field in ('xyz', 'rpy'):
             values = mount.get(field)
             if not isinstance(values, list) or len(values) != 3:
-                raise ValueError(f'tf.{name}.{field} requires three measured values.')
+                raise ValueError(f'tf.{name}.{field} requires three pose values.')
             if any(isinstance(v, bool) or not isinstance(v, (float, int))
                    or not math.isfinite(v) for v in values):
                 raise ValueError(f'tf.{name}.{field} requires finite numbers.')
+        mounts[name] = mount
+    # A mount may be attached to another mount, but must not create a TF cycle.
+    parents = {mount['child']: mount['parent'] for mount in mounts.values()}
+    for child in parents:
+        visited = set()
+        frame = child
+        while frame in parents:
+            if frame in visited:
+                raise ValueError('Sensor mount TF contains a cycle.')
+            visited.add(frame)
+            frame = parents[frame]
+    return mounts
+
+
+def active_mounts(config):
+    """Return only configured mounts whose sensor is part of this launch."""
+    if config['tf'].get('publish_mounts') is not True:
+        return {}
+    mounts = validate_mounts(config['tf'])
+    sections = {'mid360': 'lidar', 'd435i': 'camera'}
+    expected = {'mid360': config['lidar']['frame_id'],
+                'd435i': config['camera']['name'] + '_link'}
+    result = {}
+    for name, mount in mounts.items():
+        if not config[sections[name]]['enabled']:
+            continue
+        if mount['child'] != expected[name]:
+            raise ValueError(f'tf.{name}.child must match driver frame {expected[name]}.')
+        result[name] = mount
+    return result
 
 
 def lidar_config(config):

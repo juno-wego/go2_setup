@@ -1,0 +1,276 @@
+{
+  "recorded_date": "2026-10-19",
+  "device_model": "Mid360s (Livox device type 35)",
+  "method": "Normalize per-sensor median accelerations in five-second stationary windows. Fit Rz(0) Ry(pitch) Rx(roll) so that rotated LiDAR gravity agrees with Go2 body-IMU gravity. No assumption that base_link is level.",
+  "stationary_seated_gates": {
+    "gyro_p95_max_rad_s": 0.06,
+    "relative_acceleration_deviation_p95_max": 0.03,
+    "min_samples_per_sensor_per_block": 50
+  },
+  "units_note": "Current Livox driver publishes acceleration in g; Go2 publishes m/s^2. Unit gravity vectors are compared.",
+  "selection_tolerance_deg": 1.0,
+  "selection": "Keep shared bracket reference: the normalized gravity residual is below 1 degree in both poses. This is an orientation consistency check, not an accuracy bound or a full accelerometer/extrinsic calibration.",
+  "source": "https://github.com/koide3/glim/issues/309",
+  "source_image": "https://github.com/user-attachments/assets/8b6ba767-b335-447e-959b-999d74fcbbf4",
+  "source_status": "Unitree bracket diagram reproduced by a community issue author; original manufacturer page not directly verified. Diagram states body IMU as parent.",
+  "selected_transform": {
+    "parent": "imu",
+    "child": "livox_frame",
+    "xyz_m": [
+      0.187,
+      0,
+      0.0803
+    ],
+    "rpy_deg": [
+      0,
+      13,
+      0
+    ],
+    "status": "reference",
+    "translation_verified": false,
+    "yaw_verified": false
+  },
+  "pinned_urdf_base_to_imu_xyz_m": [
+    -0.02557,
+    0,
+    0.04232
+  ],
+  "composed_base_to_lidar_xyz_m": [
+    0.16143,
+    0,
+    0.12262
+  ],
+  "limitations": [
+    "Static gravity does not establish translation or a complete yaw calibration. Yaw remains 0 pending the user check.",
+    "Accelerometer bias and scale have not been independently calibrated. Sub-degree residuals are not used as mount corrections.",
+    "D435i mount remains disabled: publicly found camera transforms describe different installations."
+  ],
+  "observations": [
+    {
+      "pose": "before_seating",
+      "duration_sec": 20,
+      "message_counts": {
+        "go2": 9919,
+        "lidar": 3970
+      },
+      "raw_log": "~/wego_ws/log/mid360-imu-observation.json",
+      "median_rpy_deg": [
+        -0.40999563460200106,
+        13.584857835170444,
+        0.0
+      ],
+      "max_nominal_gravity_residual_deg": 0.7339192029026199,
+      "blocks": [
+        {
+          "rpy_deg": [
+            -0.40988920737093276,
+            13.588407209896632,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.7109011552760093,
+          "body_gravity_unit": [
+            0.013797223560507875,
+            0.009073849080813958,
+            0.9998636416456397
+          ],
+          "lidar_gravity_unit": [
+            -0.22150239826082607,
+            0.002097766059664182,
+            0.9751575703147987
+          ]
+        },
+        {
+          "rpy_deg": [
+            -0.43118162003983096,
+            13.602070500436664,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.7339192029026199,
+          "body_gravity_unit": [
+            0.014035292136460214,
+            0.009191253421690563,
+            0.9998592558131283
+          ],
+          "lidar_gravity_unit": [
+            -0.2215025054475921,
+            0.0018527845570118224,
+            0.9751580422012754
+          ]
+        },
+        {
+          "rpy_deg": [
+            -0.3948352566747143,
+            13.573192162088299,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.6900812002552834,
+          "body_gravity_unit": [
+            0.013531854103466131,
+            0.009062617070612596,
+            0.9998673701528388
+          ],
+          "lidar_gravity_unit": [
+            -0.2215022777804043,
+            0.0023427473014333445,
+            0.9751570399034067
+          ]
+        },
+        {
+          "rpy_deg": [
+            -0.4101020618330694,
+            13.581308460444257,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.7051404601075255,
+          "body_gravity_unit": [
+            0.01367291645260894,
+            0.009322442824882388,
+            0.9998630623317659
+          ],
+          "lidar_gravity_unit": [
+            -0.2215022777804043,
+            0.0023427473014333445,
+            0.9751570399034067
+          ]
+        }
+      ]
+    },
+    {
+      "pose": "seated",
+      "duration_sec": 25,
+      "message_counts": {
+        "go2": 12419,
+        "livox": 4975
+      },
+      "raw_log": "~/wego_ws/log/mid360-seated-imu-observation.json",
+      "median_rpy_deg": [
+        -0.449230174132185,
+        13.560755790969118,
+        0.0
+      ],
+      "max_nominal_gravity_residual_deg": 0.7200853679534737,
+      "blocks": [
+        {
+          "block": 0,
+          "accepted": true,
+          "counts": {
+            "go2": 2429,
+            "livox": 975
+          },
+          "rpy_deg": [
+            -0.44941241611620075,
+            13.566148829106154,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.7200853679534737,
+          "body_gravity_unit": [
+            0.0976110453507421,
+            0.005209229940295614,
+            0.995211006645809
+          ],
+          "lidar_gravity_unit": [
+            -0.13855680640948123,
+            -0.002558812793383703,
+            0.990351182093854
+          ]
+        },
+        {
+          "block": 1,
+          "accepted": true,
+          "counts": {
+            "go2": 2496,
+            "livox": 1000
+          },
+          "rpy_deg": [
+            -0.4775501968240921,
+            13.540999424728053,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.7185349700547675,
+          "body_gravity_unit": [
+            0.0974160510698722,
+            0.005205437911144692,
+            0.9952301323865276
+          ],
+          "lidar_gravity_unit": [
+            -0.13831614505188927,
+            -0.0030492433276361687,
+            0.9903834338947283
+          ]
+        },
+        {
+          "block": 2,
+          "accepted": true,
+          "counts": {
+            "go2": 2500,
+            "livox": 1000
+          },
+          "rpy_deg": [
+            -0.449230174132185,
+            13.555614318224022,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.7117211899547027,
+          "body_gravity_unit": [
+            0.09742806619781001,
+            0.00520607994089018,
+            0.9952289528789866
+          ],
+          "lidar_gravity_unit": [
+            -0.13855680640948123,
+            -0.002558812793383703,
+            0.990351182093854
+          ]
+        },
+        {
+          "block": 3,
+          "accepted": true,
+          "counts": {
+            "go2": 2497,
+            "livox": 1000
+          },
+          "rpy_deg": [
+            -0.4424050647115435,
+            13.562778851044369,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.713168044098647,
+          "body_gravity_unit": [
+            0.09779430526030589,
+            0.005088282578298157,
+            0.9951936410764779
+          ],
+          "lidar_gravity_unit": [
+            -0.1383163352325202,
+            -0.002558899642150762,
+            0.9903847956428181
+          ]
+        },
+        {
+          "block": 4,
+          "accepted": true,
+          "counts": {
+            "go2": 2496,
+            "livox": 1000
+          },
+          "rpy_deg": [
+            -0.4421127123797636,
+            13.560755790969118,
+            0.0
+          ],
+          "nominal_gravity_residual_deg": 0.7113948270749587,
+          "body_gravity_unit": [
+            0.09775917193280709,
+            0.005083229178978279,
+            0.9951971187077089
+          ],
+          "lidar_gravity_unit": [
+            -0.1383163352325202,
+            -0.002558899642150762,
+            0.9903847956428181
+          ]
+        }
+      ]
+    }
+  ]
+}

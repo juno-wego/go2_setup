@@ -28,7 +28,7 @@ ros2 run wego_bringup check_hardware --duration 10
 | MID360 | ASIX USB LAN / `enx00181af29c25` | `192.168.1.5/24` | `192.168.1.177` |
 | D435i | USB, 현재 USB 2 연결 | 해당 없음 | 해당 없음 |
 
-검증한 Jetson의 두 유선 포트에는 NetworkManager 수동 주소와 `never-default`를 저장했다.
+검증한 Jetson의 두 유선 포트에는 NetworkManager 수동 주소, `never-default`, 자동 연결을 저장했다.
 다른 Jetson에서는 해당 포트에 주소를 별도로 설정한다. Wi-Fi 기본 경로를 유지한다.
 robot.yaml의 Go2 인터페이스와 로봇 IP, LiDAR IP/host_ip는 위 배선과 맞춰져 있다.
 LiDAR host_ip는 ASIX 인터페이스에 할당되어 있어야 한다.
@@ -46,12 +46,44 @@ sudo python3 ~/wego_ws/src/wego/wego_bringup/scripts/configure_network.py
 `--interface enP8p1s0`를 지정하면 두 주소를 해당 포트에 추가한다.
 RealSense는 USB 3 데이터 케이블로 연결하면 더 높은 지원 프로파일을 사용할 수 있다.
 
-장착 TF는 실측 전까지 비활성화한다. `tf.mid360` 및 `tf.d435i`에 xyz(m), rpy(rad)를
-입력하고 `tf.calibrated: true`, `tf.publish_mounts: true`로 설정한다.
-기본 프레임은 base_link → livox_frame 및 base_link → camera_link이다.
+장착 TF는 `tf.publish_mounts`와 센서별 `enabled`로 선택한다.
+`status: reference`는 출처가 있는 참고 장착값이며 `source`가 필요하다.
+실측/보정이 끝난 센서만 `status: measured`로 기록한다. xyz는 m, rpy는 rad 단위다.
+알 수 없는 장착값은 `enabled: false`, `status: unconfigured`로 둔다.
+
+현재 MID360은 공유된 Unitree 브래킷 도면의 참고값을 적용했다.
+이 도면의 부모 좌표계는 **Go2 몸통 IMU**이므로 다음과 같이 연결한다.
+
+```text
+base_link → imu          xyz = (-0.02557, 0, 0.04232) m   [고정된 Wego URDF]
+imu → livox_frame        xyz = ( 0.18700, 0, 0.08030) m   rpy = (0, 13°, 0)
+base_link → livox_frame  xyz = ( 0.16143, 0, 0.12262) m   [위 두 변환의 합성]
+```
+
+2026-10-19에 앉히기 전 20초와 앉힌 상태 25초의 `/go2/imu`, `/livox/imu`를 비교했다.
+yaw를 0으로 고정한 추정값은 각각 roll 약 −0.41°/−0.45°, pitch 약 13.58°/13.56°였다.
+장착 기준값을 적용한 중력 벡터의 차이는 두 자세 모두 약 0.7°였다.
+사용자가 작은 차이면 참고값을 사용하도록 요청했으므로, 1°를 판단 기준으로 정해 0°·13°를 유지했다.
+이는 IMU bias까지 제거한 정밀 보정이나 오차 상한을 뜻하지 않는다.
+위치는 도면 참고값이며 실측하지 않았다. yaw는 0인 참고값으로 두고 사용자 확인을 기다린다.
+측정 조건과 구간별 결과: [mid360_imu_validation.json](config/mid360_imu_validation.json).
+기록 당시 Livox 가속도는 g, Go2는 m/s²였으므로 각 중력 벡터를 정규화해서 비교했다.
+
+참고 자료:
+
+- [Unitree 도면이 공유된 GLIM 이슈](https://github.com/koide3/glim/issues/309): 제조사 원문 페이지를 직접 확인한 자료는 아니다.
+- [Go2Py xacro](https://github.com/machines-in-motion/Go2Py/blob/main/deploy/ros2_nodes/go2_description/xacro/robot.xacro): 동일한 13° 값이 있지만 해당 모델의 부모 프레임을 현재 URDF에 그대로 옮기지 않았다.
+- [Livox MID-360S 공식 자료](https://www.livoxtech.com/mid-360s/downloads): 매뉴얼의 IMU 축 방향은 point-cloud 축과 같고, IMU 원점은 point-cloud 기준 `(0.011, 0.02329, -0.04412)m`다. 이 내부 오프셋을 몸체 장착 xyz에 더하지 않는다.
+
+**D435i 장착 TF는 아직 비활성화 상태다.** Go2Py 실행 파일은 카메라를 `d455`로 표기하며
+별도 보정값을 사용한다. 현재 D435i와 같은 장착/보정이라는 근거가 없다.
+다른 공개 Go2+D435i 모델은 커스텀 마운트여서 현재 장착에 적용하지 않았다.
+RealSense 공식 URDF의 screw frame과 `camera_link`도 서로 다르므로 두 원점을 혼용하면 안 된다.
 Go2의 odom/관절/본체 IMU TF와 RealSense 내부 TF는 해당 드라이버에서 제공한다.
-MID360 내부 IMU와 LiDAR 원점의 차이는 장착 TF와 별도로 취급해야 한다.
 Livox JSON의 extrinsic_parameter는 0으로 유지하여 장착 변환이 이중 적용되지 않게 한다.
+Go2가 활성화되면 참고/실측 장착을 합성 URDF에 추가하고 robot_state_publisher가 TF를 발행한다.
+MID360 외형은 매뉴얼 치수의 간단한 상자이며 정밀 CAD나 충돌 모델이 아니다.
+상류 Go2 소스 URDF는 변경하지 않는다. Go2 비활성화 시에만 별도 static TF 노드를 사용한다.
 
 주요 토픽:
 
@@ -105,16 +137,15 @@ source ~/wego_ws/install/setup.bash
 ros2 launch wego_bringup bringup.launch.py rviz:=true
 ```
 
-주 창: Go2 RobotModel, TF, D435i RGB와 depth 영상.
-장착 TF가 미보정 상태이면 MID360은 livox_frame 기준의 별도 RViz 창에 표시한다.
+주 창: Go2와 MID360 외형, TF, MID360 포인트클라우드, D435i RGB와 depth 영상.
+현재 MID360은 IMU로 확인한 참고 장착 TF를 사용하여 Go2와 같은 창에 표시한다.
+LiDAR 장착 TF를 끄면 MID360은 livox_frame 기준의 별도 RViz 창에 표시한다.
 이 창은 센서 원점에 동일 좌표의 `livox_frame_rviz_axes` 별칭을 만들어 좌표축을 표시한다.
-Go2와 센서 사이의 장착 변환은 실측값을 입력한 뒤 활성화한다.
-실측 장착 TF를 활성화하면 주 창에서 Go2와 MID360 포인트클라우드를 함께 표시한다.
-카메라 pointcloud도 켜면 보정된 좌표계에서 선택적으로 확인할 수 있다.
+카메라는 영상만 표시한다. 카메라 장착 TF와 pointcloud를 모두 켜면 합성 좌표계에서 포인트클라우드를 확인할 수 있다.
 LiDAR 시각화에는 `lidar.xfer_format: 0` (PointCloud2)이 필요하다.
 Go2의 실제 관절 자세에는 로봇의 /lowstate 수신이 필요하다.
 
-로봇 연결 전 Go2 URDF 형태를 확인하는 미리보기:
+로봇 연결 전 Go2와 설정된 센서 외형을 확인하는 미리보기:
 
 ```bash
 ros2 launch wego_bringup view_robot.launch.py

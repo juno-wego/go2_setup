@@ -27,15 +27,23 @@ camera:
   enable_imu: true
   pointcloud: false
 tf:
-  # Enable only after measuring the mounting positions and directions.
-  publish_mounts: false
-  calibrated: false
+  publish_mounts: true
   mid360:
-    parent: base_link
+    enabled: true
+    # Factory bracket reference, checked against both IMUs on 2026-10-19.
+    # Translation is relative to the BODY IMU, not base_link.
+    status: reference
+    source: https://github.com/koide3/glim/issues/309
+    parent: imu
     child: livox_frame
-    xyz: null
-    rpy: null
+    xyz: [0.1870, 0.0, 0.0803]
+    rpy: [0.0, 0.22689280275926285, 0.0]
+    yaw_verified: false
   d435i:
+    # The public Go2Py camera calibration is for a different installation.
+    # Keep this mount off until the actual D435i mount is established.
+    enabled: false
+    status: unconfigured
     parent: base_link
     child: camera_link
     xyz: null
