@@ -106,3 +106,17 @@ def test_camera_waits_for_a_server_and_limits_outstanding_requests(node):
     assert node._pending_id != first.header.identity.id
     node._on_image(response(identity=first.header.identity.id))
     assert node._pending_id == node._request_pub.messages[-1].header.identity.id
+
+
+def test_sensor_aliases_subscribe_only_while_readers_need_them(node):
+    assert all(relay['subscription'] is None for relay in node._relays)
+    relay = node._relays[0]
+    relay['publisher'] = Publisher()
+    node._update_relays()
+    subscription = relay['subscription']
+    assert subscription is not None
+    node._update_relays()
+    assert relay['subscription'] is subscription
+    relay['publisher'].subscriptions = 0
+    node._update_relays()
+    assert relay['subscription'] is None

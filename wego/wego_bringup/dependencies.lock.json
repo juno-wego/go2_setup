@@ -34,18 +34,5 @@
     "commit": "34d6c778e1134d8505adcd56bb57acbe7598a459",
     "backend": "RSUSB",
     "path": "src/vendor/librealsense"
-  },
-  "unitree_slam_messages": {
-    "url": "https://github.com/unitreerobotics/unitree_slam.git",
-    "commit": "1e49bfa4dca2c992a566ee7d1d8480d4102149b8",
-    "paths": [
-      "wego/graph_msg",
-      "wego/unitree_interfaces"
-    ]
-  },
-  "unitree_arm_message": {
-    "path": "wego/unitree_arm",
-    "source": "https://unitree-robot.pl/wp-content/uploads/2026/02/Ramie-robota-unitree-D1-instrukcja.pdf",
-    "section": "7.1 ArmString"
   }
 }

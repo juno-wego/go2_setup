@@ -17,6 +17,7 @@ class Go2Sensors(Node):
     def __init__(self):
         super().__init__('go2_sensors')
         sensor_qos = QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT)
+        self._sensor_qos = sensor_qos
         self._relays = []
         for message_type, source, target in (
             (PointCloud2, '/utlidar/cloud', '/go2/lidar'),
@@ -27,9 +28,11 @@ class Go2Sensors(Node):
             (UwbState, '/uwbstate', '/go2/uwb_state'),
         ):
             publisher = self.create_publisher(message_type, target, sensor_qos)
-            subscription = self.create_subscription(
-                message_type, source, publisher.publish, sensor_qos)
-            self._relays.append((publisher, subscription))
+            self._relays.append({
+                'publisher': publisher, 'type': message_type,
+                'source': source, 'subscription': None,
+            })
+        self._relay_timer = self.create_timer(0.2, self._update_relays)
 
         self._image_pub = self.create_publisher(
             Image, '/go2/camera/image_raw', sensor_qos)
@@ -42,6 +45,19 @@ class Go2Sensors(Node):
         self._requested_at = 0.0
         self._last_warning = float('-inf')
         self._timer = self.create_timer(0.2, self._request_image)
+
+    def _update_relays(self):
+        # Native topics remain directly accessible. Subscribe to duplicate
+        # aliases only while a reader needs them, especially the 500 Hz state.
+        for relay in self._relays:
+            publisher = relay['publisher']
+            if publisher.get_subscription_count() > 0:
+                if relay['subscription'] is None:
+                    relay['subscription'] = self.create_subscription(
+                        relay['type'], relay['source'], publisher.publish, self._sensor_qos)
+            elif relay['subscription'] is not None:
+                self.destroy_subscription(relay['subscription'])
+                relay['subscription'] = None
 
     def _warn(self, message):
         now = time.monotonic()

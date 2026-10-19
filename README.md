@@ -81,7 +81,7 @@ D435i 영상: RGB 640 × 480 @ 15 fps, 깊이 480 × 270 @ 15 fps.
 
 ## 토픽 인터페이스
 
-[Go2 전체 토픽](docs/go2_topics.md)
+[Go2 원본 토픽](docs/go2_topics.md)
 
 ### Go2 상태
 

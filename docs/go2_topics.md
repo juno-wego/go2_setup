@@ -1,8 +1,8 @@
-# Go2 전체 토픽
+# Go2 원본 토픽
 
 [운용 안내](../README.md#토픽-인터페이스)
 
-원본 토픽은 아래 이름 그대로 사용한다. 지도·음성·확장 장치 토픽은 해당 기능이 동작할 때 데이터를 제공한다.
+원본 토픽은 아래 이름 그대로 사용한다. 지도·음성 토픽은 해당 기능이 동작할 때 데이터를 제공한다.
 
 ## 상태·제어
 
@@ -10,12 +10,10 @@
 |---|---|---|
 | `/config_change_status` | `unitree_go/msg/ConfigChangeStatus` | 설정 변경 알림 |
 | `/lf/battery_alarm` | `std_msgs/msg/String` | 배터리 알림 |
-| `/lf/bmsstate` | `unitree_hg/msg/BmsState` | BMS 상태 |
 | `/lf/lowstate` | `unitree_go/msg/LowState` | 저주기 관절·IMU·모터·BMS 상태 |
 | `/lf/sportmodestate` | `unitree_go/msg/SportModeState` | 저주기 동작 상태 |
 | `/lowcmd` | `unitree_go/msg/LowCmd` | 저수준 관절 명령 |
 | `/lowstate` | `unitree_go/msg/LowState` | 관절·IMU·모터·BMS 상태 |
-| `/lowstate` | `unitree_hg/msg/LowState` | 관절·IMU·모터·BMS 상태 |
 | `/sportmodestate` | `unitree_go/msg/SportModeState` | 고주기 동작 상태 |
 | `/uwbstate` | `unitree_go/msg/UwbState` | UWB 상태 |
 | `/uwbswitch` | `unitree_go/msg/UwbSwitch` | UWB 설정 |
@@ -51,13 +49,7 @@
 | 토픽 | 메시지 타입 | 내용 |
 |---|---|---|
 | `/lio_sam_ros2/mapping/odometry` | `nav_msgs/msg/Odometry` | 매핑 오도메트리 |
-| `/pctoimage_local` | `unitree_interfaces/msg/PcToImage` | 지도 영상 변환 |
-| `/qt_add_edge` | `unitree_interfaces/msg/QtEdge` | 경로 연결 추가 |
-| `/qt_add_node` | `unitree_interfaces/msg/QtNode` | 경로 지점 추가 |
-| `/qt_command` | `unitree_interfaces/msg/QtCommand` | 경로 명령 |
 | `/qt_notice` | `std_msgs/msg/String` | 지도·경로 알림 |
-| `/query_result_edge` | `unitree_interfaces/msg/QtEdge` | 경로 연결 조회 결과 |
-| `/query_result_node` | `unitree_interfaces/msg/QtNode` | 경로 지점 조회 결과 |
 | `/slam_info` | `std_msgs/msg/String` | SLAM 정보 |
 | `/slam_key_info` | `std_msgs/msg/String` | SLAM 키 정보 |
 | `/uslam/client_command` | `std_msgs/msg/String` | SLAM 명령 |
@@ -85,25 +77,11 @@
 | `/xfk_webrtcreq` | `std_msgs/msg/String` | WebRTC 확장 요청 |
 | `/xfk_webrtcres` | `std_msgs/msg/String` | WebRTC 확장 응답 |
 
-## 확장·시스템
+## 시스템
 
 | 토픽 | 메시지 타입 | 내용 |
 |---|---|---|
-| `/arm/action/state` | `std_msgs/msg/String` | 로봇팔 동작 상태 |
-| `/arm_Command` | `unitree_arm/msg/ArmString` | 로봇팔 명령 |
-| `/arm_Feedback` | `unitree_arm/msg/ArmString` | 로봇팔 피드백 |
-| `/arm_sdk` | `unitree_hg/msg/LowCmd` | 로봇팔 저수준 명령 |
-| `/gas_sensor` | `std_msgs/msg/String` | 가스 센서 |
-| `/gesture/result` | `std_msgs/msg/String` | 제스처 인식 결과 |
-| `/gnss` | `std_msgs/msg/String` | GNSS 정보 |
-| `/gpt_cmd` | `std_msgs/msg/String` | 음성·AI 명령 |
-| `/gpt_msg` | `std_msgs/msg/String` | 음성·AI 메시지 |
-| `/gpt_state` | `std_msgs/msg/String` | 음성·AI 상태 |
-| `/gptflowfeedback` | `std_msgs/msg/String` | 음성·AI 실행 피드백 |
 | `/multiplestate` | `std_msgs/msg/String` | 통합 상태 |
-| `/pet/flowfeedback` | `std_msgs/msg/String` | 동작 실행 피드백 |
-| `/programming_actuator/command` | `std_msgs/msg/String` | 프로그램 실행 명령 |
-| `/programming_actuator/feedback` | `std_msgs/msg/String` | 프로그램 실행 피드백 |
 | `/public_network_status` | `std_msgs/msg/String` | 외부 네트워크 상태 |
 | `/rtc/state` | `std_msgs/msg/String` | RTC 상태 |
 | `/rtc_status` | `std_msgs/msg/String` | RTC 연결 상태 |
@@ -117,28 +95,15 @@
 
 | 서비스 | 요청 토픽 | 응답 토픽 |
 |---|---|---|
-| arm | `/api/arm/request` | — |
-| assistant_recorder | `/api/assistant_recorder/request` | `/api/assistant_recorder/response` |
 | audiohub | `/api/audiohub/request` | `/api/audiohub/response` |
-| bashrunner | `/api/bashrunner/request` | `/api/bashrunner/response` |
 | config | `/api/config/request` | `/api/config/response` |
-| fourg_agent | `/api/fourg_agent/request` | `/api/fourg_agent/response` |
-| gas_sensor | `/api/gas_sensor/request` | `/api/gas_sensor/response` |
-| gesture | `/api/gesture/request` | — |
-| gpt | `/api/gpt/request` | `/api/gpt/response` |
 | motion_switcher | `/api/motion_switcher/request` | `/api/motion_switcher/response` |
 | obstacles_avoid | `/api/obstacles_avoid/request` | `/api/obstacles_avoid/response` |
-| pet | `/api/pet/request` | `/api/pet/response` |
-| programming_actuator | `/api/programming_actuator/request` | `/api/programming_actuator/response` |
-| rm_con | `/api/rm_con/request` | — |
 | robot_state | `/api/robot_state/request` | `/api/robot_state/response` |
-| slam_operate | `/api/slam_operate/request` | `/api/slam_operate/response` |
 | sport | `/api/sport/request` | `/api/sport/response` |
 | sport_lease | `/api/sport_lease/request` | `/api/sport_lease/response` |
 | uwbswitch | `/api/uwbswitch/request` | `/api/uwbswitch/response` |
 | videohub | `/api/videohub/request` | `/api/videohub/response` |
-| vla | `/api/vla/request` | `/api/vla/response` |
-| voice | `/api/voice/request` | `/api/voice/response` |
 | vui | `/api/vui/request` | `/api/vui/response` |
 
 API 번호·인자는 [Unitree SDK2](https://github.com/unitreerobotics/unitree_sdk2/tree/main/include/unitree/robot/go2)를 따른다.

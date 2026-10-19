@@ -16,9 +16,6 @@
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>unitree_api</exec_depend>
   <exec_depend>unitree_go</exec_depend>
-  <exec_depend>unitree_hg</exec_depend>
-  <exec_depend>unitree_interfaces</exec_depend>
-  <exec_depend>unitree_arm</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-opencv</exec_depend>
   <exec_depend>compressed_image_transport</exec_depend>

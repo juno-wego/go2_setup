@@ -16,8 +16,7 @@ fi
 export CMAKE_PREFIX_PATH="$wego_ws_root/install/wego_vendor${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
 export LD_LIBRARY_PATH="$wego_ws_root/install/wego_vendor/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 colcon build --symlink-install --parallel-workers 2 \
-    --packages-select unitree_go unitree_hg unitree_api graph_msg unitree_interfaces unitree_arm \
-    go2_interface go2_description \
+    --packages-select unitree_go unitree_api go2_interface go2_description \
     go2_base livox_ros_driver2 wego_vendor wego_bringup \
     --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
     -DROS_EDITION=ROS2 -DDISTRO_ROS=humble
