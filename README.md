@@ -36,13 +36,12 @@ ros2 launch mid360 bringup.launch.py
 ros2 launch d435i bringup.launch.py
 ```
 
-설정: `wego/config/robot.yaml`
+설정: `~/wego_ws/wego/config/robot.yaml`
 
 ## 패키지 구조와 빌드
 
 ```text
-go2_setup/
-├── build.sh
+~/wego_ws/
 ├── go2/
 │   ├── bringup/
 │   └── driver/
@@ -55,20 +54,12 @@ go2_setup/
 └── wego/
 ```
 
-초기 준비:
+Jetson에서 소스 수정 후 빌드:
 
 ```bash
-git submodule update --init --recursive
-bash build.sh
-sudo install -m644 go2/bringup/config/20-go2-ethernet.conf mid360/bringup/config/20-mid360-ethernet.conf /etc/NetworkManager/conf.d/
-sudo nmcli general reload conf
-```
-
-빌드:
-
-```bash
+cd ~/wego_ws
 source install/setup.bash
-colcon build
+colcon build --symlink-install
 ```
 
 ## 연결
