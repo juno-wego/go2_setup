@@ -1,28 +1,18 @@
 # D435i
 
-Standalone RealSense D435i support. This package owns its configuration,
-librealsense sources in `d435i/vendor/librealsense`, SDK build script and launch file.
-The ROS driver and camera description remain upstream packages.
-
-Build the SDK before building the ROS workspace:
-
 ```bash
-./d435i/scripts/build_sdk.sh /path/to/workspace
-```
-
-The script retains the RSUSB backend and disables CUDA, examples and tools.
-It installs into `<workspace>/install/d435i`. The workspace build tools expose
-that prefix while compiling the driver; sourcing the resulting workspace
-exposes its SDK libraries through the package environment hook.
-
-After building and sourcing the workspace:
-
-```bash
+source ~/wego_ws/install/setup.bash
 ros2 launch d435i bringup.launch.py
-ros2 launch d435i bringup.launch.py config_file:=/path/to/device.yaml
 ```
 
-Device YAML is a flat mapping using the fields in `config/device.yaml`.
-An empty `serial_no` selects the attached camera; robot profiles may pin one.
-RealSense publishes its internal TF. Robot-specific mounting transforms belong
-to `wego`. This package does not configure Go2 or DDS interfaces.
+설정: `~/wego_ws/d435i/config/device.yaml`
+
+`serial_no`는 카메라 시리얼 번호다. 비워 두면 연결된 카메라를 사용한다.
+
+| 항목 | 위치 |
+|---|---|
+| ROS 드라이버 | `/opt/ros/humble/share/realsense2_camera/` |
+| 카메라 모델 파일 | `/opt/ros/humble/share/realsense2_description/` |
+| SDK 소스 | `~/wego_ws/d435i/vendor/librealsense/` |
+
+[빌드 안내](../README.md#패키지-구조와-빌드)

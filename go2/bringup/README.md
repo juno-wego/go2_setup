@@ -1,22 +1,17 @@
 # Go2
 
-Go2 driver composition, bridge parameters and native sensor adapters belong here.
-The upstream `go2_base`, `go2_description` and Unitree messages remain in
-`go2/driver`, alongside this package at `go2/bringup`.
-This package does not depend on `wego` or external sensors.
-
 ```bash
+source ~/wego_ws/install/setup.bash
 ros2 launch go2 bringup.launch.py
-ros2 launch go2 bringup.launch.py config_file:=/path/to/go2.yaml rviz:=true
 ```
 
-`config/device.yaml` contains the standalone network interface, robot IP used by
-diagnostics, and DDS domain. `config/go2.yaml` contains the upstream ROS node
-parameters. The launch selects CycloneDDS and validates the configured interface
-only within its Go2 scope. An empty interface leaves DDS interface selection to
-the environment.
-Control, state bridging, robot description and the `go2_sensors` node start together;
-the bridge parameters keep automatic standing and mode changes disabled.
+RViz를 함께 켜려면 실행 명령 뒤에 `rviz:=true`를 붙인다.
 
-The optional `description_file` launch argument accepts an assembled URDF. It
-defaults to the upstream Go2 URDF; sensor mounting TF belongs to `wego`.
+| 파일 | 내용 |
+|---|---|
+| `~/wego_ws/go2/bringup/config/device.yaml` | 네트워크 설정 |
+| `~/wego_ws/go2/bringup/config/go2.yaml` | 상태·제어 설정 |
+
+드라이버: `~/wego_ws/go2/driver/`
+
+[빌드 안내](../../README.md#패키지-구조와-빌드)
