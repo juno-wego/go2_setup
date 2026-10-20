@@ -58,8 +58,9 @@ Jetson에서 소스 수정 후 빌드:
 
 ```bash
 cd ~/wego_ws
-source install/setup.bash
+source /opt/ros/humble/setup.bash
 colcon build --symlink-install
+source install/setup.bash
 ```
 
 ## 연결
