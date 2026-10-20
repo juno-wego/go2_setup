@@ -10,7 +10,7 @@ setup(
         ('share/ament_index/resource_index/packages', ['resource/go2']),
         ('share/go2', ['package.xml', 'README.md']),
         ('share/go2/launch', glob('launch/*.launch.py')),
-        ('share/go2/config', glob('config/*.yaml')),
+        ('share/go2/config', glob('config/*')),
     ],
     install_requires=['setuptools', 'PyYAML'],
     zip_safe=True,

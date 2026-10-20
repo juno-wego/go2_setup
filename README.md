@@ -60,6 +60,8 @@ go2_setup/
 ```bash
 git submodule update --init --recursive
 bash build.sh
+sudo install -m644 go2/bringup/config/20-go2-ethernet.conf mid360/bringup/config/20-mid360-ethernet.conf /etc/NetworkManager/conf.d/
+sudo nmcli general reload conf
 ```
 
 빌드:

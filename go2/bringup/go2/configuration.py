@@ -1,7 +1,11 @@
 """Device settings shared by standalone and aggregate Go2 launches."""
 
+import errno
+import fcntl
 import ipaddress
 from pathlib import Path
+import socket
+import struct
 from xml.sax.saxutils import quoteattr
 
 import yaml
@@ -51,11 +55,33 @@ def load_config(path):
 
 
 def validate_interface(config):
-    """Check the selected NIC only when a caller actually enables Go2."""
+    """Require an enabled IPv4 NIC before selecting it for CycloneDDS."""
     interface = config['network_interface']
-    if interface and not (Path('/sys/class/net') / interface).exists():
+    if not interface:
+        return
+    if not (Path('/sys/class/net') / interface).exists():
         raise ValueError(f'Network interface {interface!r} does not exist. '
                          'Set network_interface in the Go2 configuration.')
+    hint = 'Check the host network profile and static IPv4 configuration.'
+    # Linux read-only ioctls: IFF_UP is independent of carrier/operstate, so
+    # loopback (operstate UNKNOWN) and configured links without carrier work.
+    request = struct.pack('256s', interface.encode())
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            flags = fcntl.ioctl(probe.fileno(), 0x8913, request)  # SIOCGIFFLAGS
+            if not struct.unpack_from('H', flags, 16)[0] & 0x1:  # IFF_UP
+                raise ValueError(f'Network interface {interface!r} is administratively DOWN. '
+                                 + hint)
+            try:
+                fcntl.ioctl(probe.fileno(), 0x8915, request)  # SIOCGIFADDR (IPv4)
+            except OSError as exc:
+                if exc.errno == errno.EADDRNOTAVAIL:
+                    raise ValueError(f'Network interface {interface!r} has no IPv4 address; '
+                                     'CycloneDDS cannot use it. ' + hint) from exc
+                raise
+    except OSError as exc:
+        raise ValueError(f'Cannot inspect network interface {interface!r}: {exc}. '
+                         + hint) from exc
 
 
 def dds_environment(config):
