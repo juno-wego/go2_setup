@@ -25,7 +25,7 @@ def write_rviz_configs(config, template_dir, output_dir):
     lidar_enabled = lidar['enabled']
     robot_enabled = config['go2']['enabled']
     mounts = active_mounts(config)
-    fixed_frame = 'base_link'
+    fixed_frame = 'odom'
     if not robot_enabled:
         if camera_enabled:
             fixed_frame = camera['name'] + '_link'

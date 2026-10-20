@@ -66,7 +66,7 @@ def test_uncalibrated_sensors_use_independent_frames_and_configured_topics(confi
     views = render()
 
     assert set(views) == {'robot', 'lidar'}
-    assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'base_link'
+    assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'odom'
     assert views['lidar']['Visualization Manager']['Global Options']['Fixed Frame'] == 'mid360_sensor'
     robot = displays(views['robot'])
     assert_enabled(robot['MID360 Cloud'], False)
@@ -95,7 +95,7 @@ def test_calibrated_mounts_put_clouds_in_robot_view_without_duplicate_lidar(conf
     robot = displays(views['robot'])
     assert_enabled(robot['MID360 Cloud'], True)
     assert_enabled(robot['D435i Cloud'], True)
-    assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'base_link'
+    assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'odom'
 
 
 def test_reference_lidar_mount_combines_only_the_lidar_cloud(config, render):
