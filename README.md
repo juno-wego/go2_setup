@@ -67,7 +67,7 @@ D435i 영상 설정: 컬러 640 × 480, 거리 480 × 270. 각각 초당 15장.
 현재 D435i 일련번호: `261722076686`.
 카메라를 교체하면 `~/wego_ws/wego/config/robot.yaml`의 `camera.serial_no`를 맞춘다.
 
-D435i 포인트클라우드는 통합 실행 시 Go2·MID-360과 같은 RViz 화면에 표시한다. MID-360 외형은 연결된 장비에 맞는 Livox 공식 MID-360S CAD 모델로 표시한다.
+D435i 점군은 통합 RViz에 표시한다. MID-360 외형은 Livox 공식 MID-360S 모델을 사용한다.
 
 ### 현재 LAN 포트 설정
 
@@ -181,9 +181,6 @@ MAC 주소와 NetworkManager의 해당 연결 조건을 확인한다.
 | `/go2/sport_cmd` | `go2_interface/msg/SportCmd` | 자세·동작 명령 |
 | `/go2/low_cmd` | `unitree_go/msg/LowCmd` | 관절·모터 직접 제어 명령 |
 
-`/cmd_vel` 수신이 0.5초간 중단되면 브리지가 속도 0의 `Move`를 한 번 보낸다.
-일반 정지에 `StopMove`를 사용하지 않도록 설정했다.
-
 ## 좌표계
 
 | 기준 → 장치 | 위치 (x, y, z) [m] | 회전 (X, Y, Z축) [°] | 상태 |
@@ -192,18 +189,14 @@ MAC 주소와 NetworkManager의 해당 연결 조건을 확인한다.
 | `imu → livox_frame` | `(0.187, 0, 0.0803)` | `(0, 13, 0)` | 장착 참고값, Z축 회전각 미확인 |
 | `front_camera → camera_link` | `(0.01, 0.0175, 0.05)` | `(0, 5, 0)` | 현재 설정값, 실측 미확인 |
 
-D435i 본체의 좌우 가운데를 Go2 전면 카메라 위에 맞추고, 현재 설정은 전면 카메라보다 앞으로 1cm·위로 5cm·아래로 5°이다.
-공식 모델의 `camera_link`는 본체의 좌우 가운데보다 왼쪽으로 17.5mm에 있어 이 차이를 보정했다.
-D435i 위치와 기울기는 사용자 설명에 따른 근삿값이다. MID-360 위치는 기존 브래킷 참고값이며, IMU 비교로 확인한 것은 기울기다. 센서 위치는 실측 보정이 필요하다.
+장착 위치는 참고값이며 실측 보정이 필요하다.
 
 ## Go2 pub 제어 준비
 
-현재 Jetson은 새 터미널을 열면 ROS 2와 `wego_ws`를 자동으로 불러온다.
-통합 bringup을 실행해 둔 상태라면 추가 준비 명령 없이 아래 `ros2 topic pub` 명령을 실행하면 된다.
-평평한 바닥에서 주변 공간을 확보하고, 앱에 경고가 없는지 확인한다.
-조종기로 즉시 정지할 수 있는 상태에서 명령을 하나씩 실행한다.
+bringup 실행 후 새 터미널에서 명령을 하나씩 실행한다.
+조종기로 즉시 정지할 수 있도록 준비한다.
 
-자동 로딩이 설정되지 않은 환경에서만 다음 한 줄을 먼저 실행한다.
+환경이 자동 로딩되지 않을 때만 실행:
 
 ```bash
 source ~/wego_ws/install/setup.bash
@@ -217,27 +210,41 @@ source ~/wego_ws/install/setup.bash
 | `linear.y` | 로봇 왼쪽 | 로봇 오른쪽 | m/s |
 | `angular.z` | 왼쪽 회전 | 오른쪽 회전 | rad/s |
 
-일반 정지: 모든 속도를 0으로 보낸다.
+정지:
 
 ```bash
 ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
   '{linear: {x: 0.0, y: 0.0}, angular: {z: 0.0}}'
 ```
 
-이동 명령의 발행을 끝내면 0.5초 뒤 브리지가 속도 0을 한 번 보낸다.
-입력이 끊기는 것 자체가 속도 0 명령은 아니므로 자동 정지는 유지한다.
-명령 처리와 통신 지연 때문에 실제 정지 시점은 달라질 수 있다.
-`/go2/sport_cmd`의 `stop_move`는 별도의 `StopMove` 요청이며, 현재 장비에서 멈출 때 모드가 바뀌는 증상이 있어 일반 정지 예제에서는 사용하지 않는다.
+입력이 0.5초간 없으면 속도 0 명령을 보낸다.
 
-설정: `~/wego_ws/go2/bringup/config/go2.yaml`의 `cmd_timeout: 0.5`,
-`stop_on_timeout: true`, `timeout_use_stop_move: false`.
-설정을 바꾸면 bringup을 `Ctrl+C`로 종료한 뒤 다시 실행해야 적용된다.
-bringup 시작 시 자동 일어서기·보행 모드 전환은 꺼져 있다.
+## Go2 자세 명령
+
+### 일어서기
+
+```bash
+ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
+  '{command: stand_up}'
+```
+
+### 균형 서기
+
+```bash
+ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
+  '{command: balance_stand}'
+```
+
+### 엎드리기
+
+```bash
+ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
+  '{command: stand_down}'
+```
 
 ## Go2 이동 명령
 
-다음 명령은 20Hz로 20번, 약 1초 동안 입력을 발행한다.
-실제 이동 시간과 거리는 보장하지 않는다. 생략한 속도 성분은 0이다.
+20Hz로 20회 발행한다(약 1초).
 
 ### 앞으로 — 0.02m/s
 
@@ -280,51 +287,3 @@ ros2 topic pub --rate 20 --times 20 \
 ros2 topic pub --rate 20 --times 20 \
   /cmd_vel geometry_msgs/msg/Twist '{angular: {z: -0.05}}'
 ```
-
-발행 주기를 생략하면 기본값은 1Hz라서 현재 0.5초 타임아웃보다 느리다.
-이동 입력에는 `--rate 20`을 유지한다. 다른 이동 명령 발행기와 동시에 실행하지 않는다.
-
-## Go2 자세 명령
-
-각 명령은 실제 자세를 바꾼다. 다리 동작 범위 밖에서 한 가지씩 실행하고 결과를 확인한다.
-
-### 일어서기
-
-```bash
-ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
-  '{command: stand_up}'
-```
-
-### 균형 서기
-
-```bash
-ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
-  '{command: balance_stand}'
-```
-
-### 엎드리기
-
-```bash
-ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
-  '{command: stand_down}'
-```
-
-### 몸체 기울이기 — pitch +1° 요청
-
-균형 서기 상태에서 작은 각도부터 사용한다. `roll`, `pitch`, `yaw`는 rad 단위이며,
-1°는 약 0.0174533rad이다. `Twist.angular.z`의 회전 속도와 구분한다.
-
-```bash
-ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
-  '{command: euler, roll: 0.0, pitch: 0.0174533, yaw: 0.0}'
-```
-
-### 몸체 기울기 원위치
-
-```bash
-ros2 topic pub --once /go2/sport_cmd go2_interface/msg/SportCmd \
-  '{command: euler, roll: 0.0, pitch: 0.0, yaw: 0.0}'
-```
-
-메시지와 API 변환은 로봇과 분리된 환경에서 확인했다. 자세 명령의 실제 동작은 현재 장비에서 확인 전이며, 펌웨어와 현재 제어 모드에 따라 지원 여부가 달라질 수 있다.
-참고: [Unitree 공식 SportClient API](https://github.com/unitreerobotics/unitree_sdk2/blob/main/include/unitree/robot/go2/sport/sport_client.hpp).
