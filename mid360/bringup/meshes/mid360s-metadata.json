@@ -1,0 +1,41 @@
+{
+  "source_page": "https://www.livoxtech.com/mid-360s/downloads",
+  "source_url": "https://terra-1-g.djicdn.com/65c028cd298f4669a7f0e40e50ba1131/Mid-360S/Mid-360S%203D%20Model/mid-360S.stp",
+  "source_sha256": "62eda1dd93160b57269e25162e4119922ac6efe941b27b2f2d727705ac3fe363",
+  "mesh_sha256": "22eff62e59d846bf66ff0a255deacde39627b7cb5fcc889bc6b3b776cf791531",
+  "bounds_m": [
+    -0.03830011561512947,
+    0.032443199306726456,
+    -0.032443199306726456,
+    0.032443199306726456,
+    -0.04699999839067459,
+    0.01299996767193079
+  ],
+  "facets": 69067,
+  "cad_to_livox_matrix_m": [
+    [
+      -1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      -0.02108289834856987
+    ],
+    [
+      0,
+      0,
+      0,
+      1
+    ]
+  ]
+}

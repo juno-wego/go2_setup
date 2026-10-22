@@ -1,6 +1,7 @@
 """RViz views for measured mount TF and independent sensor inspection."""
 
 from pathlib import Path
+import copy
 import shutil
 import tempfile
 
@@ -35,6 +36,10 @@ def write_rviz_configs(config, template_dir, output_dir):
     camera_prefix = '/' + '/'.join(
         str(v).strip('/') for v in (camera['namespace'], camera['name'])
         if str(v).strip('/'))
+    camera_frame = camera['name'] + '_link'
+    camera_cloud_available = camera_enabled and camera['pointcloud']
+    camera_in_robot = camera_cloud_available and (
+        (robot_enabled and 'd435i' in mounts) or fixed_frame == camera_frame)
     cloud_available = lidar_enabled and int(lidar['xfer_format']) == 0
     lidar_in_robot = cloud_available and (
         (robot_enabled and 'mid360' in mounts) or fixed_frame == lidar['frame_id'])
@@ -59,9 +64,7 @@ def write_rviz_configs(config, template_dir, output_dir):
             _enable(display, lidar_in_robot)
         elif name == 'D435i Cloud':
             display['Topic']['Value'] = camera_prefix + '/depth/color/points'
-            _enable(display, camera_enabled and camera['pointcloud'] and (
-                (robot_enabled and 'd435i' in mounts)
-                or fixed_frame == camera['name'] + '_link'))
+            _enable(display, camera_in_robot)
         displays.append(display)
     robot['Visualization Manager']['Displays'] = displays
     paths = {'robot': output_dir / 'robot_sensors.rviz'}
@@ -71,11 +74,24 @@ def write_rviz_configs(config, template_dir, output_dir):
         preview['Visualization Manager']['Global Options']['Fixed Frame'] = lidar['frame_id']
         paths['lidar'] = output_dir / 'mid360_sensor_frame.rviz'
         paths['lidar'].write_text(yaml.safe_dump(preview, sort_keys=False))
+    if camera_cloud_available and not camera_in_robot:
+        preview = copy.deepcopy(robot)
+        manager = preview['Visualization Manager']
+        manager['Global Options']['Fixed Frame'] = camera_frame
+        manager['Displays'] = [display for display in manager['Displays']
+                               if display['Name'] in ('Grid', 'TF', 'D435i Cloud')]
+        for display in manager['Displays']:
+            _enable(display, True)
+        manager['Views']['Current'].update({
+            'Distance': 3.5, 'Focal Point': {'X': 1.5, 'Y': 0, 'Z': 0}})
+        preview['Window Geometry'].update(Width=900, Height=900, X=990, Y=80)
+        paths['camera'] = output_dir / 'd435i_sensor_frame.rviz'
+        paths['camera'].write_text(yaml.safe_dump(preview, sort_keys=False))
     return paths
 
 
 def rviz_actions(config, template_dir):
-    """Create managed RViz nodes, with a separate uncalibrated LiDAR view."""
+    """Create managed RViz nodes and previews for sensors without mounting TF."""
     from launch.actions import LogInfo, OpaqueFunction, RegisterEventHandler
     from launch.event_handlers import OnShutdown
     from launch_ros.actions import Node
@@ -111,6 +127,11 @@ def rviz_actions(config, template_dir):
             'MID360 is shown in a separate sensor-frame RViz window until '
             'measured mounting TF is enabled. RGB/depth images are in the robot window.'
         )))
+    if 'camera' in paths:
+        actions.append(LogInfo(msg=(
+            'D435i pointcloud is shown in a separate camera-frame RViz window '
+            'until its measured mounting TF is enabled.'
+        )))
     if config['lidar']['enabled'] and int(config['lidar']['xfer_format']) != 0:
         actions.append(LogInfo(msg=(
             'RViz PointCloud2 needs lidar.xfer_format: 0. '
@@ -119,7 +140,8 @@ def rviz_actions(config, template_dir):
     for key, path in paths.items():
         actions.append(Node(
             package='rviz2', executable='rviz2',
-            name='wego_rviz' if key == 'robot' else 'wego_lidar_rviz',
+            name={'robot': 'wego_rviz', 'lidar': 'wego_lidar_rviz',
+                  'camera': 'wego_camera_rviz'}[key],
             arguments=['-d', str(path)], output='screen',
         ))
     return actions

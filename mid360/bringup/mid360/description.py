@@ -1,15 +1,15 @@
-"""MID360 visual geometry, independent of its mounting pose."""
+"""Official MID-360S CAD visual in the driver's point-cloud frame."""
 
 import xml.etree.ElementTree as ET
 
 
 def add_visual(link):
-    """Add the approximate sensor envelope to an existing URDF link."""
-    # Livox's drawing places the point-cloud origin 47 mm above the bottom face.
-    # This is a visual approximation, not collision geometry.
-    visual = ET.SubElement(link, 'visual', name='mid360_envelope')
-    ET.SubElement(visual, 'origin', xyz='0 0 -0.017', rpy='0 0 0')
+    """Attach the connected sensor's CAD mesh without changing mounting TF."""
+    # The mesh is already in metres and the Livox frame (origin 47 mm above base).
+    # Conversion and manufacturer provenance are recorded in meshes/README.md.
+    visual = ET.SubElement(link, 'visual', name='mid360_body')
+    ET.SubElement(visual, 'origin', xyz='0 0 0', rpy='0 0 0')
     geometry = ET.SubElement(visual, 'geometry')
-    ET.SubElement(geometry, 'box', size='0.065 0.065 0.060')
+    ET.SubElement(geometry, 'mesh', filename='package://mid360/meshes/mid360s.stl')
     material = ET.SubElement(visual, 'material', name='wego_mid360_body')
-    ET.SubElement(material, 'color', rgba='0.2 0.35 0.65 1')
+    ET.SubElement(material, 'color', rgba='0.55 0.58 0.62 1')

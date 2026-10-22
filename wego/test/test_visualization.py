@@ -28,6 +28,7 @@ def config():
     settings['lidar'].update(enabled=True, xfer_format=0)
     settings['camera'].update(enabled=True, pointcloud=False)
     settings['tf'].update(publish_mounts=False)
+    settings['tf']['d435i']['enabled'] = False
     return settings
 
 
@@ -65,7 +66,7 @@ def test_uncalibrated_sensors_use_independent_frames_and_configured_topics(confi
 
     views = render()
 
-    assert set(views) == {'robot', 'lidar'}
+    assert set(views) == {'robot', 'lidar', 'camera'}
     assert views['robot']['Visualization Manager']['Global Options']['Fixed Frame'] == 'odom'
     assert views['lidar']['Visualization Manager']['Global Options']['Fixed Frame'] == 'mid360_sensor'
     robot = displays(views['robot'])
@@ -79,6 +80,12 @@ def test_uncalibrated_sensors_use_independent_frames_and_configured_topics(confi
     cloud = displays(views['lidar'])['MID360 Cloud']
     assert_enabled(cloud, True)
     assert cloud['Topic']['Value'] == '/livox/lidar'
+    camera_view = views['camera']
+    assert camera_view['Visualization Manager']['Global Options']['Fixed Frame'] == 'd435i_link'
+    camera_displays = displays(camera_view)
+    assert set(camera_displays) == {'Grid', 'TF', 'D435i Cloud'}
+    assert_enabled(camera_displays['D435i Cloud'], True)
+    assert camera_displays['D435i Cloud']['Topic']['Value'] == '/perception/front/d435i/depth/color/points'
 
 
 def test_calibrated_mounts_put_clouds_in_robot_view_without_duplicate_lidar(config, render):
@@ -104,7 +111,7 @@ def test_reference_lidar_mount_combines_only_the_lidar_cloud(config, render):
 
     views = render()
 
-    assert set(views) == {'robot'}
+    assert set(views) == {'robot', 'camera'}
     robot = displays(views['robot'])
     assert_enabled(robot['MID360 Cloud'], True)
     assert_enabled(robot['D435i Cloud'], False)
@@ -156,3 +163,20 @@ def test_go2_sensor_displays_are_absent_when_go2_is_disabled(config, render):
 
     assert 'Go2 Camera' not in robot
     assert 'Go2 LiDAR' not in robot
+
+
+@pytest.mark.parametrize('camera_enabled,pointcloud', [(True, False), (False, True)])
+def test_disabled_camera_cloud_has_no_preview(config, render, camera_enabled, pointcloud):
+    config['camera'].update(enabled=camera_enabled, pointcloud=pointcloud)
+    views = render()
+    assert 'camera' not in views
+    assert_enabled(displays(views['robot'])['D435i Cloud'], False)
+
+
+def test_camera_only_cloud_is_in_main_view_without_duplicate_preview(config, render):
+    config['go2']['enabled'] = False
+    config['lidar']['enabled'] = False
+    config['camera']['pointcloud'] = True
+    views = render()
+    assert set(views) == {'robot'}
+    assert_enabled(displays(views['robot'])['D435i Cloud'], True)

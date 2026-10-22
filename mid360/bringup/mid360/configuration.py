@@ -11,7 +11,7 @@ import yaml
 DEFAULT_CONFIG = {
     'enabled': True,
     'model': 'Mid360s',
-    'ip': '192.168.1.177',
+    'ip': '192.168.1.120',
     'host_ip': '192.168.1.5',
     'frame_id': 'livox_frame',
     'publish_freq': 10.0,

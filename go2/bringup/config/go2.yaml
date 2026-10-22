@@ -22,3 +22,5 @@ go2_cmd_vel_bridge:
     auto_running_mode_on_start: false
     cmd_timeout: 0.5
     stop_on_timeout: true
+    # Stop with zero velocity; StopMove can also change the robot posture mode.
+    timeout_use_stop_move: false

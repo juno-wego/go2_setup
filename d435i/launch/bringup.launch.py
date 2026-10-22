@@ -8,6 +8,7 @@ from launch.actions import (
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import SetParameter
 
 from d435i.configuration import load_config
 
@@ -25,6 +26,8 @@ def _setup(context):
         'enable_gyro': str(config['enable_imu']).lower(),
         'enable_accel': str(config['enable_imu']).lower(),
         'unite_imu_method': '2', 'publish_tf': 'true',
+        # Start from a clean USB device state after previous camera sessions.
+        'initial_reset': 'true',
         'pointcloud.enable': str(config['pointcloud']).lower(),
         'align_depth.enable': 'true', 'enable_sync': 'true',
     }
@@ -35,6 +38,12 @@ def _setup(context):
         # Keep the surrounding process environment, isolating driver launch args
         # such as config_file from any parent robot configuration.
         ResetLaunchConfigurations(),
+        # Librealsense 2.58 on this Jetson names its accelerated filter
+        # "Pointcloud (NEON)". Keep it in sync with the standard pointcloud
+        # launch option, scoped to this camera rather than other drivers.
+        SetParameter(name='pointcloud__neon_.enable', value=config['pointcloud']),
+        SetParameter(name='pointcloud__neon_.stream_filter', value=2),
+        SetParameter(name='pointcloud__neon_.stream_index_filter', value=0),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(str(share / 'launch/rs_launch.py')),
             launch_arguments=arguments.items(),

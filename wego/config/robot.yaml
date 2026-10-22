@@ -9,7 +9,7 @@ lidar:
   enabled: true
   # Sensor discovery reported device type 35 (Livox SDK Mid360s).
   model: Mid360s
-  ip: 192.168.1.177
+  ip: 192.168.1.120
   host_ip: 192.168.1.5
   frame_id: livox_frame
   publish_freq: 10.0
@@ -19,17 +19,18 @@ camera:
   enabled: true
   namespace: camera
   name: camera
-  serial_no: '262422072409'
-  # Conservative startup profiles for the currently detected USB 2 link.
+  serial_no: '261722076686'
+  # Conservative image profiles; current camera is connected over USB 3.
   depth_profile: 480x270x15
   color_profile: 640x480x15
   enable_imu: true
-  pointcloud: false
+  pointcloud: true
 tf:
   publish_mounts: true
   mid360:
     enabled: true
-    # Factory bracket reference, checked against both IMUs on 2026-10-19.
+    # Bracket reference; IMU comparison checked tilt, not translation.
+    # Original bracket translation restored at the user request; not surveyed.
     # Translation is relative to the BODY IMU, not base_link.
     status: reference
     source: https://github.com/koide3/glim/issues/309
@@ -39,9 +40,16 @@ tf:
     rpy: [0.0, 0.22689280275926285, 0.0]
     yaw_verified: false
   d435i:
-    enabled: false
-    status: unconfigured
-    parent: base_link
+    enabled: true
+    # Approximate placement supplied by the user on 2026-10-22.
+    # Align the housing's lateral center with Go2 front_camera.
+    # Official D435i camera_link is 17.5 mm left of the housing center.
+    # Preserve the current Jetson setting: x is 1 cm in front of front_camera.
+    # Positive pitch tilts the forward axis down.
+    status: reference
+    source: Approximate current Jetson setting; housing centered laterally, 1 cm forward of Go2 front_camera, up 5 cm, tilted down 5 deg; not surveyed
+    parent: front_camera
     child: camera_link
-    xyz: null
-    rpy: null
+    xyz: [0.01, 0.0175, 0.05]
+    rpy: [0.0, 0.08726646259971647, 0.0]
+    yaw_verified: false

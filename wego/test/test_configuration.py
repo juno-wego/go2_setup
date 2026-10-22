@@ -15,7 +15,7 @@ spec.loader.exec_module(module)
 
 def test_unknown_camera_mount_cannot_be_enabled(tmp_path):
     config = yaml.safe_load((ROOT / 'config/robot.yaml').read_text())
-    config['tf']['d435i']['enabled'] = True
+    config['tf']['d435i'].update(enabled=True, status='unconfigured', xyz=None, rpy=None)
     path = tmp_path / 'robot.yaml'
     path.write_text(yaml.safe_dump(config))
     with pytest.raises(ValueError, match='measured'):
@@ -54,11 +54,17 @@ def test_duplicate_sensor_frame_is_rejected():
 def test_reference_mount_is_usable_without_claiming_verified_yaw():
     config = module.load_config(ROOT / 'config/robot.yaml')
     mounts = module.active_mounts(config)
-    assert set(mounts) == {'mid360'}
+    assert set(mounts) == {'mid360', 'd435i'}
     assert mounts['mid360']['parent'] == 'imu'
     assert mounts['mid360']['status'] == 'reference'
     assert mounts['mid360']['yaw_verified'] is False
+    assert mounts['d435i']['parent'] == 'front_camera'
+    assert mounts['d435i']['xyz'] == [0.01, 0.0175, 0.05]
+    assert mounts['d435i']['status'] == 'reference'
+    assert mounts['d435i']['yaw_verified'] is False
     config['lidar']['enabled'] = False
+    assert set(module.active_mounts(config)) == {'d435i'}
+    config['camera']['enabled'] = False
     assert module.active_mounts(config) == {}
 
 
