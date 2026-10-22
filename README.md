@@ -198,21 +198,16 @@ D435i 위치와 기울기는 사용자 설명에 따른 근삿값이다. MID-360
 
 ## Go2 pub 제어 준비
 
-통합 bringup을 실행해 둔 상태에서 Jetson의 새 터미널을 연다.
+현재 Jetson은 새 터미널을 열면 ROS 2와 `wego_ws`를 자동으로 불러온다.
+통합 bringup을 실행해 둔 상태라면 추가 준비 명령 없이 아래 `ros2 topic pub` 명령을 실행하면 된다.
 평평한 바닥에서 주변 공간을 확보하고, 앱에 경고가 없는지 확인한다.
 조종기로 즉시 정지할 수 있는 상태에서 명령을 하나씩 실행한다.
 
+자동 로딩이 설정되지 않은 환경에서만 다음 한 줄을 먼저 실행한다.
+
 ```bash
 source ~/wego_ws/install/setup.bash
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-export ROS_DOMAIN_ID=0
-export ROS_LOCALHOST_ONLY=0
-export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
-<NetworkInterface name="go2" />
-</Interfaces></General></Domain></CycloneDDS>'
 ```
-
-위 설정은 해당 터미널에 적용한다. Go2 네트워크 설정을 바꾸었다면 인터페이스 이름과 도메인 번호도 맞춘다.
 
 ### 이동 축과 일반 정지
 
