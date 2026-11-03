@@ -1,0 +1,56 @@
+# Jetson module serial 1423925006603. Units: metres and radians.
+go2:
+  enabled: true
+  network_interface: go2
+  robot_ip: 192.168.123.161
+  domain_id: 0
+lidar:
+  enabled: true
+  model: Mid360s
+  ip: 192.168.1.122
+  host_ip: 192.168.1.5
+  frame_id: livox_frame
+  publish_freq: 10.0
+  xfer_format: 0
+camera:
+  enabled: true
+  namespace: camera
+  name: camera
+  serial_no: '262722075665'
+  depth_profile: 480x270x15
+  color_profile: 640x480x15
+  enable_imu: true
+  pointcloud: true
+tf:
+  publish_mounts: true
+  mid360:
+    enabled: true
+    status: reference
+    source: https://github.com/koide3/glim/issues/309
+    parent: imu
+    child: livox_frame
+    xyz:
+    - 0.187
+    - 0.0
+    - 0.0803
+    rpy:
+    - 0.0
+    - 0.22689280275926285
+    - 0.0
+    yaw_verified: false
+  d435i:
+    enabled: true
+    status: reference
+    source: Same mounting as units 1 and 2, confirmed by user on 2026-11-03; reference,
+      not surveyed
+    parent: front_camera
+    child: camera_link
+    xyz:
+    - 0.01
+    - 0.0175
+    - 0.05
+    rpy:
+    - 0.0
+    - 0.08726646259971647
+    - 0.0
+    yaw_verified: false

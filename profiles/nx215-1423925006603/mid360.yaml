@@ -1,0 +1,7 @@
+enabled: true
+model: Mid360s
+ip: 192.168.1.122
+host_ip: 192.168.1.5
+frame_id: livox_frame
+publish_freq: 10.0
+xfer_format: 0

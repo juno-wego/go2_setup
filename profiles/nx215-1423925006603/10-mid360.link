@@ -1,0 +1,6 @@
+[Match]
+MACAddress=00:18:1a:f2:99:55
+
+[Link]
+NamePolicy=
+Name=mid360

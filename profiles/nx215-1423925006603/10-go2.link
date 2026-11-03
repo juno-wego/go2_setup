@@ -1,0 +1,6 @@
+[Match]
+MACAddress=4c:bb:47:27:e0:02
+
+[Link]
+NamePolicy=
+Name=go2
